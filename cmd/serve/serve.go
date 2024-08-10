@@ -10,13 +10,17 @@ import (
 	"path"
 
 	"github.com/baalimago/go_away_boilerplate/pkg/ancli"
+	"github.com/baalimago/wd-40/internal/wsinject"
 )
 
 type command struct {
-	relPath string
 	binPath string
-	port    *int
-	flagset *flag.FlagSet
+	// master, as in adjective 'master record' non-slavery kind
+	masterPath string
+	mirrorPath string
+	port       *int
+	flagset    *flag.FlagSet
+	fileserver wsinject.Fileserver
 }
 
 func Command() *command {
@@ -37,19 +41,30 @@ func (c *command) Setup() error {
 	} else {
 		relPath = c.flagset.Arg(0)
 	}
-	c.relPath = path.Clean(relPath)
+	c.masterPath = path.Clean(relPath)
+
+	if c.masterPath != "" {
+		mirrorPath, err := c.fileserver.Setup(c.masterPath)
+		if err != nil {
+			return fmt.Errorf("failed to setup websocket injected mirror filesystem: %v", err)
+		}
+		c.mirrorPath = mirrorPath
+	}
+
 	return nil
 }
 
 func (c *command) Run(ctx context.Context) error {
-	h := http.FileServer(http.Dir(c.relPath))
+	h := http.FileServer(http.Dir(c.masterPath))
+	h = slogHandler(h)
+
 	s := http.Server{
 		Addr:    fmt.Sprintf(":%v", *c.port),
 		Handler: h,
 	}
 	errChan := make(chan error, 1)
 	go func() {
-		ancli.PrintfOK("now serving directory: '%v' on port: '%v'", c.relPath, *c.port)
+		ancli.PrintfOK("now serving directory: '%v' on port: '%v'", c.masterPath, *c.port)
 		err := s.ListenAndServe()
 		if !errors.Is(err, http.ErrServerClosed) {
 			errChan <- err

@@ -3,10 +3,10 @@ package serve
 import "testing"
 
 func Test_Setup(t *testing.T) {
-	t.Run("it should set relPath to second argument", func(t *testing.T) {
+	t.Run("it should set masterPath to second argument", func(t *testing.T) {
 		want := "post"
 		c := command{
-			relPath: "pre",
+			masterPath: "pre",
 		}
 		given := []string{want}
 		err := c.Flagset().Parse(given)
@@ -14,7 +14,7 @@ func Test_Setup(t *testing.T) {
 			t.Fatalf("failed to parse flagset: %v", err)
 		}
 		c.Setup()
-		got := c.relPath
+		got := c.masterPath
 		if got != want {
 			t.Fatalf("expected: %v, got: %v", want, got)
 		}

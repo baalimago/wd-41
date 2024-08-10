@@ -33,7 +33,11 @@ func run(ctx context.Context, args []string, parseArgs cmd.ArgParser) int {
 		return printHelp(command, err, cmd.PrintUsage)
 	}
 	fs := command.Flagset()
-	err = fs.Parse(args[2:])
+	var cmdArgs []string
+	if len(args) > 2 {
+		cmdArgs = args[2:]
+	}
+	err = fs.Parse(cmdArgs)
 	if err != nil {
 		ancli.PrintfErr("failed to parse flagset: %v", err.Error())
 		return 1

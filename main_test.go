@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
 	"strings"
 	"testing"
 
@@ -30,6 +31,10 @@ func (m MockCommand) Describe() string {
 
 func (m MockCommand) Setup() error {
 	return nil
+}
+
+func (m MockCommand) Flagset() *flag.FlagSet {
+	return flag.NewFlagSet("test", flag.ContinueOnError)
 }
 
 func Test_printHelp_ExitCodes(t *testing.T) {
