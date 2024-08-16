@@ -11,6 +11,7 @@ import (
 
 	"github.com/baalimago/go_away_boilerplate/pkg/ancli"
 	"github.com/baalimago/wd-40/internal/wsinject"
+	"golang.org/x/net/websocket"
 )
 
 type command struct {
@@ -19,8 +20,9 @@ type command struct {
 	masterPath string
 	mirrorPath string
 	port       *int
+	wsPath     *string
 	flagset    *flag.FlagSet
-	fileserver wsinject.Fileserver
+	fileserver *wsinject.Fileserver
 }
 
 func Command() *command {
@@ -44,6 +46,7 @@ func (c *command) Setup() error {
 	c.masterPath = path.Clean(relPath)
 
 	if c.masterPath != "" {
+		c.fileserver = wsinject.NewFileServer(*c.port, *c.wsPath)
 		mirrorPath, err := c.fileserver.Setup(c.masterPath)
 		if err != nil {
 			return fmt.Errorf("failed to setup websocket injected mirror filesystem: %v", err)
@@ -55,30 +58,49 @@ func (c *command) Setup() error {
 }
 
 func (c *command) Run(ctx context.Context) error {
-	h := http.FileServer(http.Dir(c.masterPath))
-	h = slogHandler(h)
+	mux := http.NewServeMux()
+	fsh := http.FileServer(http.Dir(c.mirrorPath))
+	fsh = slogHandler(fsh)
+	mux.Handle("/", fsh)
+
+	ancli.PrintfOK("setting up websocket host on path: '%v'", *c.wsPath)
+	mux.Handle(*c.wsPath, websocket.Handler(c.fileserver.WsHandler))
 
 	s := http.Server{
-		Addr:    fmt.Sprintf(":%v", *c.port),
-		Handler: h,
+		Addr:        fmt.Sprintf(":%v", *c.port),
+		Handler:     mux,
+		ReadTimeout: 0,
 	}
-	errChan := make(chan error, 1)
+	serverErrChan := make(chan error, 1)
+	fsErrChan := make(chan error, 1)
 	go func() {
-		ancli.PrintfOK("now serving directory: '%v' on port: '%v'", c.masterPath, *c.port)
+		ancli.PrintfOK("now serving directory: '%v' on port: '%v', mirror dir is: '%v'", c.masterPath, *c.port, c.mirrorPath)
 		err := s.ListenAndServe()
 		if !errors.Is(err, http.ErrServerClosed) {
-			errChan <- err
+			serverErrChan <- err
 		}
 	}()
+	go func() {
+		ancli.PrintOK("starting fsnotify file detector")
+		err := c.fileserver.Start(ctx)
+		if err != nil {
+			fsErrChan <- err
+		}
+	}()
+	var retErr error
 	select {
 	case <-ctx.Done():
-	case serveErr := <-errChan:
-		return serveErr
+	case serveErr := <-serverErrChan:
+		retErr = serveErr
+		break
+	case fsErr := <-fsErrChan:
+		retErr = fsErr
+		break
 	}
 	ancli.PrintNotice("initiating webserver graceful shutdown")
 	s.Shutdown(ctx)
 	ancli.PrintOK("shutdown complete")
-	return nil
+	return retErr
 }
 
 func (c *command) Help() string {
@@ -92,6 +114,7 @@ func (c *command) Describe() string {
 func (c *command) Flagset() *flag.FlagSet {
 	fs := flag.NewFlagSet("server", flag.ExitOnError)
 	c.port = fs.Int("port", 8080, "port to serve http server on")
+	c.wsPath = fs.String("wsPort", "/delta-streamer-ws", "the path which the delta streamer websocket should be hosted on")
 	c.flagset = fs
 	return fs
 }

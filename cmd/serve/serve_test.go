@@ -3,8 +3,9 @@ package serve
 import "testing"
 
 func Test_Setup(t *testing.T) {
+	tmpDir := t.TempDir()
 	t.Run("it should set masterPath to second argument", func(t *testing.T) {
-		want := "post"
+		want := tmpDir
 		c := command{
 			masterPath: "pre",
 		}
@@ -19,6 +20,7 @@ func Test_Setup(t *testing.T) {
 			t.Fatalf("expected: %v, got: %v", want, got)
 		}
 	})
+
 	t.Run("it should set port arg", func(t *testing.T) {
 		want := 9090
 		c := command{}
