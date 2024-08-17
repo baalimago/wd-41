@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/baalimago/wd-40/cmd/serve"
@@ -38,4 +39,20 @@ func Test_Parse(t *testing.T) {
 		}
 	})
 
+}
+
+func TestFormatCommandDescriptions(t *testing.T) {
+	// Set up mock commands
+	commands = map[string]Command{
+		"testCmd": serve.Command(),
+	}
+
+	// Call the function we're testing
+	result := formatCommandDescriptions()
+
+	// Check if the returned string contains the expected command descriptions
+	expectedSubstring := "testCmd -"
+	if !strings.Contains(result, expectedSubstring) {
+		t.Errorf("Expected formatted command descriptions to contain '%s', got '%s'", expectedSubstring, result)
+	}
 }

@@ -14,6 +14,12 @@ import (
 	"golang.org/x/net/websocket"
 )
 
+type Fileserver interface {
+	Setup(pathToMaster string) (string, error)
+	Start(ctx context.Context) error
+	WsHandler(ws *websocket.Conn)
+}
+
 type command struct {
 	binPath string
 	// master, as in adjective 'master record' non-slavery kind
@@ -22,7 +28,7 @@ type command struct {
 	port       *int
 	wsPath     *string
 	flagset    *flag.FlagSet
-	fileserver *wsinject.Fileserver
+	fileserver Fileserver
 }
 
 func Command() *command {
