@@ -2,7 +2,7 @@ module github.com/baalimago/wd-40
 
 go 1.22.2
 
-require github.com/baalimago/go_away_boilerplate v1.3.30
+require github.com/baalimago/go_away_boilerplate v1.3.32
 
 require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect

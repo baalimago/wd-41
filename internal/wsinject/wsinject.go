@@ -12,6 +12,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/baalimago/go_away_boilerplate/pkg/ancli"
 	"github.com/fsnotify/fsnotify"
@@ -24,7 +25,10 @@ type Fileserver struct {
 	wsPath     string
 	watcher    *fsnotify.Watcher
 
-	pageReloadChan chan string
+	pageReloadChan        chan string
+	wsDispatcher          sync.Map
+	wsDispatcherStarted   *bool
+	wsDispatcherStartedMu *sync.Mutex
 }
 
 const deltaStreamer = `<!-- This script has been injected by wd-40 and allows hot reloads -->
@@ -35,11 +39,15 @@ func NewFileServer(wsPort int, wsPath string) *Fileserver {
 	if err != nil {
 		panic(err)
 	}
+	started := false
 	return &Fileserver{
-		mirrorPath:     mirrorDir,
-		wsPort:         wsPort,
-		wsPath:         wsPath,
-		pageReloadChan: make(chan string),
+		mirrorPath:            mirrorDir,
+		wsPort:                wsPort,
+		wsPath:                wsPath,
+		pageReloadChan:        make(chan string),
+		wsDispatcher:          sync.Map{},
+		wsDispatcherStarted:   &started,
+		wsDispatcherStartedMu: &sync.Mutex{},
 	}
 }
 

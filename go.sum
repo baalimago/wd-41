@@ -38,6 +38,8 @@ github.com/baalimago/go_away_boilerplate v1.3.29 h1:+CyeSxOa3BsnlCQZV20ueVYuY3bd
 github.com/baalimago/go_away_boilerplate v1.3.29/go.mod h1:2O+zQ0Zm8vPD5SeccFFlgyf3AnYWQSHAut/ecPMmRdU=
 github.com/baalimago/go_away_boilerplate v1.3.30 h1:kncoPdn8dZSp9eDa0oW9V0MCxcgSsRaiNbBahkJ1fVI=
 github.com/baalimago/go_away_boilerplate v1.3.30/go.mod h1:2O+zQ0Zm8vPD5SeccFFlgyf3AnYWQSHAut/ecPMmRdU=
+github.com/baalimago/go_away_boilerplate v1.3.32 h1:4+TBHtLpUVo1oCq1/v8wA8k8GdZVDBLY1+NZf2vcXA4=
+github.com/baalimago/go_away_boilerplate v1.3.32/go.mod h1:2O+zQ0Zm8vPD5SeccFFlgyf3AnYWQSHAut/ecPMmRdU=
 github.com/fsnotify/fsnotify v1.7.0 h1:8JEhPFa5W2WU7YfeZzPNqzMP6Lwt7L2715Ggo0nosvA=
 github.com/fsnotify/fsnotify v1.7.0/go.mod h1:40Bi/Hjc2AVfZrqy+aj+yEI+/bRxZnMJyTJwOpGvigM=
 golang.org/x/net v0.28.0 h1:a9JDOJc5GMUJ0+UDqmLT86WiEy7iWyIhz8gz8E4e5hE=
