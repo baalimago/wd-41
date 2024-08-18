@@ -1,0 +1,13 @@
+name: Simple Go Pipeline - validate
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  call-workflow:
+    uses: baalimago/simple-go-pipeline/.github/workflows/validate.yml@main
+    with:
+      go-version: '1.22'

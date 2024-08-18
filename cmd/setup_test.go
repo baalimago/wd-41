@@ -20,6 +20,17 @@ func Test_Parse(t *testing.T) {
 		}
 	})
 
+	t.Run("it should return command if second argument specifies shortcut of specific command", func(t *testing.T) {
+		want := serve.Command()
+		got, err := Parse([]string{"/some/cli/path", "s"})
+		if err != nil {
+			t.Fatalf(": %v", err)
+		}
+		if got.Describe() != want.Describe() {
+			t.Fatalf("expected: %v, got: %v", want, got)
+		}
+	})
+
 	t.Run("it should return error if command doesnt exist", func(t *testing.T) {
 		badArg := "blheruh"
 		want := ArgNotFoundError(badArg)

@@ -1,0 +1,15 @@
+name: Simple Go Pipeline - release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+jobs:
+  call-workflow:
+    uses: baalimago/simple-go-pipeline/.github/workflows/release.yml@v0.2.5
+    with:
+      go-version: '1.22'
+      project-name: wd-40
+      branch: main
+      version-var: "github.com/baalimago/wd-40/cmd/version.BUILD_VERSION"
+

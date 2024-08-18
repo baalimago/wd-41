@@ -7,10 +7,12 @@ import (
 	"text/tabwriter"
 
 	"github.com/baalimago/wd-40/cmd/serve"
+	"github.com/baalimago/wd-40/cmd/version"
 )
 
 var commands = map[string]Command{
-	"serve": serve.Command(),
+	"s|serve":   serve.Command(),
+	"v|version": version.Command(),
 }
 
 func Parse(args []string) (Command, error) {
@@ -27,11 +29,16 @@ func Parse(args []string) (Command, error) {
 		cmdCandidate = arg
 		break
 	}
-	cmd, exists := commands[cmdCandidate]
-	if !exists {
-		return nil, ArgNotFoundError(cmdCandidate)
+	for cmdNameWithShortcut, cmd := range commands {
+		for _, cmdName := range strings.Split(cmdNameWithShortcut, "|") {
+			exists := cmdName == cmdCandidate
+			if exists {
+				return cmd, nil
+			}
+		}
 	}
-	return cmd, nil
+
+	return nil, ArgNotFoundError(cmdCandidate)
 }
 
 func formatCommandDescriptions() string {
@@ -46,10 +53,10 @@ func formatCommandDescriptions() string {
 
 const usage = `== Web Development 40 == 
 
-This tool is designed to ease the web devleopment hassles by
-automatically attaching a script which sets up websocket. Through
-this websocket, dynamic hot reloads of file changes are streamed.. somehow
-haven't figured out that part yet.
+This tool is designed to enable hot reload for any statically hosted web development.
+It injects a websocket script (in a mirrored version of the file) into html pages
+and uses the fsnotify (cross-platform 'inotify' wrapper) packge to detect filechanges.
+On filechanges, the websocket will trigger a reload of the page. 
 
 The 40 is only to enable rust-repellant properties.
 
