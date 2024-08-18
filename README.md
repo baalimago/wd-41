@@ -4,7 +4,7 @@
 
 Test coverage:
 
-This is a static webserver which hot-reloads your web-browser on any local filechanges.
+This is a very simple static webserver which hot-reloads your web-browser on changes to the statically hosted webserver.
 
 ## Usage
 `wd-40 s|serve <relative directory>` or `wd-40 s|serve`
