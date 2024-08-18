@@ -14,7 +14,9 @@ var (
 	BUILD_CHECKSUM = ""
 )
 
-type command struct{}
+type command struct {
+	getVersionCmd func() (*debug.BuildInfo, bool)
+}
 
 // Describe the version command
 func (c command) Describe() string {
@@ -33,7 +35,7 @@ func (c command) Help() string {
 
 // Run the command, printing the version using either the debugbuild or tagged version
 func (c command) Run(context.Context) error {
-	bi, ok := debug.ReadBuildInfo()
+	bi, ok := c.getVersionCmd()
 	if !ok {
 		return errors.New("failed to read build info")
 	}
@@ -51,6 +53,7 @@ func (c command) Run(context.Context) error {
 
 // Setup the command
 func (c command) Setup() error {
+	c.getVersionCmd = debug.ReadBuildInfo
 	return nil
 }
 
