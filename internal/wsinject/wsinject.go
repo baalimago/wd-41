@@ -61,6 +61,7 @@ func (fs *Fileserver) mirrorFile(origPath string) error {
 	}
 	injected, injectedBytes, err := injectWebsocketScript(fileB)
 	if err != nil {
+		return fmt.Errorf("failed to inject websocket script: %v", err)
 	}
 	if injected {
 		ancli.PrintfNotice("injected delta-streamer script loading tag in: '%v'", origPath)
