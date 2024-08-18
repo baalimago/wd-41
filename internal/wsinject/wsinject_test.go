@@ -6,6 +6,8 @@ import (
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/baalimago/go_away_boilerplate/pkg/ancli"
 )
 
 func Test_walkDir(t *testing.T) {
@@ -58,33 +60,54 @@ const mockHtml = `<!DOCTYPE html>
 
 func Test_Setup(t *testing.T) {
 	tmpDir := t.TempDir()
+	ancli.Newline = true
 	fileName := "t0.html"
-	os.WriteFile(path.Join(tmpDir, fileName), []byte(mockHtml), 0644)
+	os.WriteFile(path.Join(tmpDir, fileName), []byte(mockHtml), 0777)
+	nestedDir := path.Join(tmpDir, "nested")
+	err := os.MkdirAll(nestedDir, 0777)
+	if err != nil {
+		t.Fatalf("failed to create temp dir: %v", err)
+	}
+	nestedFile := path.Join(nestedDir, "nested.html")
+	os.WriteFile(nestedFile, []byte(mockHtml), 0777)
 	fs := NewFileServer(8080, "/delta-streamer-ws.js")
-	_, err := fs.Setup(tmpDir)
+	_, err = fs.Setup(tmpDir)
 	if err != nil {
 		t.Fatalf("failed to setup: %v", err)
 	}
-	t.Run("it should inject delta-streamer.js source tag", func(t *testing.T) {
-		mirrorFilePath := path.Join(fs.mirrorPath, fileName)
-		b, err := os.ReadFile(mirrorFilePath)
+	checkIfInjected := func(t *testing.T, filePath string) {
+		b, err := os.ReadFile(filePath)
 		if err != nil {
 			t.Fatalf("failed to read mirrored file: %v", err)
 		}
 		if !strings.Contains(string(b), "delta-streamer.js") {
-			t.Fatalf("expected mirrored file: '%v' to have been injected with content-streamer.js", mirrorFilePath)
+			t.Fatalf("expected mirrored file: '%v' to have been injected with content-streamer.js", filePath)
 		}
+	}
+	t.Run("it should inject delta-streamer.js source tag", func(t *testing.T) {
+		mirrorFilePath := path.Join(fs.mirrorPath, fileName)
+		checkIfInjected(t, mirrorFilePath)
 	})
-	t.Run("it should write the delta streamer file to root of mirror", func(t *testing.T) {
-		mirrorFilePath := path.Join(fs.mirrorPath, "delta-streamer.js")
-		b, err := os.ReadFile(mirrorFilePath)
+
+	t.Run("it should inject delta-streamer.js souce tag to nested files", func(t *testing.T) {
+		mirrorFilePath := path.Join(fs.mirrorPath, "nested", "nested.html")
+		checkIfInjected(t, mirrorFilePath)
+	})
+
+	checkIfDeltaStreamerExists := func(t *testing.T, filePath string) {
+		t.Helper()
+		b, err := os.ReadFile(filePath)
 		if err != nil {
 			t.Fatalf("failed to find delta-streamer.js: %v", err)
 		}
-		// Whatever happens in the delta streamre source code, it should mention
-		// wd-40
+		// Whatever happens in the delta streamre source code, it should mention wd-40
 		if !strings.Contains(string(b), "wd-40") {
 			t.Fatal("expected delta-streamer.js file to conain string 'wd-40'")
 		}
+	}
+	t.Run("it should write the delta streamer file to root of mirror", func(t *testing.T) {
+		mirrorFilePath := path.Join(fs.mirrorPath, "delta-streamer.js")
+		checkIfDeltaStreamerExists(t, mirrorFilePath)
 	})
+
 }

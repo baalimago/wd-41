@@ -51,7 +51,8 @@ func NewFileServer(wsPort int, wsPath string) *Fileserver {
 	}
 }
 
-func (fs *Fileserver) mirrorFile(origPath, relativeName string) error {
+func (fs *Fileserver) mirrorFile(origPath string) error {
+	relativePath := strings.Replace(origPath, fs.masterPath, "", -1)
 	fileB, err := os.ReadFile(origPath)
 	if err != nil {
 		return fmt.Errorf("failed to read file on path: '%v', err: %v", origPath, err)
@@ -63,7 +64,12 @@ func (fs *Fileserver) mirrorFile(origPath, relativeName string) error {
 	if injected {
 		ancli.PrintfNotice("injected delta-streamer script loading tag in: '%v'", origPath)
 	}
-	mirroredPath := path.Join(fs.mirrorPath, relativeName)
+	mirroredPath := path.Join(fs.mirrorPath, relativePath)
+	relativePathDir := path.Dir(mirroredPath)
+	err = os.MkdirAll(relativePathDir, 0755)
+	if err != nil {
+		return fmt.Errorf("failed to create relative dir: '%v', error: %v", relativePathDir, err)
+	}
 	err = os.WriteFile(mirroredPath, injectedBytes, 0755)
 	if err != nil {
 		return fmt.Errorf("failed to write mirrored file: %w", err)
@@ -79,7 +85,7 @@ func (fs *Fileserver) mirrorMaker(p string, info os.DirEntry, err error) error {
 		return nil
 	}
 
-	return fs.mirrorFile(p, info.Name())
+	return fs.mirrorFile(p)
 }
 
 func (fs *Fileserver) writeDeltaStreamerScript() error {
@@ -92,6 +98,7 @@ func (fs *Fileserver) writeDeltaStreamerScript() error {
 
 func (fs *Fileserver) Setup(pathToMaster string) (string, error) {
 	ancli.PrintfNotice("mirroring root: '%v'", pathToMaster)
+	fs.masterPath = pathToMaster
 	err := wsInjectMaster(pathToMaster, fs.mirrorMaker)
 	if err != nil {
 		return "", fmt.Errorf("failed to create websocket injected mirror: %v", err)
@@ -109,7 +116,6 @@ func (fs *Fileserver) Setup(pathToMaster string) (string, error) {
 		return "", fmt.Errorf("failed to add path: '%v' to watcher, err: %v", pathToMaster, err)
 	}
 	fs.watcher = watcher
-	fs.masterPath = pathToMaster
 	return fs.mirrorPath, nil
 }
 
@@ -142,7 +148,7 @@ func (fs *Fileserver) notifyPageUpdate(fileName string) {
 func (fs *Fileserver) handleFileEvent(fsEv fsnotify.Event) {
 	if fsEv.Has(fsnotify.Write) {
 		ancli.PrintfNotice("noticed file write in orig file: '%v',", fsEv.Name)
-		fs.mirrorFile(fsEv.Name, strings.Replace(fsEv.Name, fs.masterPath, "", -1))
+		fs.mirrorFile(fsEv.Name)
 		fs.notifyPageUpdate(fsEv.Name)
 	}
 }

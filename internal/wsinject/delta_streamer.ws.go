@@ -26,9 +26,14 @@ function startWebsocket() {
     let fileName = window.location.pathname.split('/').pop();
     if(fileName === "") {
       fileName = "/index.html"
+    } else {
+      fileName = "/" + fileName
     }
     // Reload page if it's detected that the current page has been altered
-    if(event.data === fileName) {
+    if(event.data === fileName ||
+      // Always reload on js and css files since its difficult to know where these are used
+      event.data.includes(".js") ||
+      event.data.includes(".css")) {
       location.reload();
     }
   });
