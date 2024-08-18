@@ -2,7 +2,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/baalimago/wd-40)](https://goreportcard.com/report/github.com/baalimago/wd-40)
 [![wakatime](https://wakatime.com/badge/user/018cc8d2-3fd9-47ef-81dc-e4ad645d5f34/project/3bc921ec-dc23-4222-bf00-578f2eda0cbd.svg)](https://wakatime.com/badge/user/018cc8d2-3fd9-47ef-81dc-e4ad645d5f34/project/3bc921ec-dc23-4222-bf00-578f2eda0cbd)
 
-Test coverage:
+Test coverage: 73.780% 😌👏
 
 This is a very simple static webserver which hot-reloads your web-browser on changes to the statically hosted webserver.
 
