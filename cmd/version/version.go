@@ -18,23 +18,23 @@ type command struct {
 	getVersionCmd func() (*debug.BuildInfo, bool)
 }
 
-// Describe the version command
-func (c command) Describe() string {
+// Describe the version *command
+func (c *command) Describe() string {
 	return "print the version of wd-40"
 }
 
 // Flagset for version, currently empty
-func (c command) Flagset() *flag.FlagSet {
+func (c *command) Flagset() *flag.FlagSet {
 	return flag.NewFlagSet("version", flag.ExitOnError)
 }
 
 // Help by printing out help
-func (c command) Help() string {
+func (c *command) Help() string {
 	return "Print the version of wd-40"
 }
 
-// Run the command, printing the version using either the debugbuild or tagged version
-func (c command) Run(context.Context) error {
+// Run the *command, printing the version using either the debugbuild or tagged version
+func (c *command) Run(context.Context) error {
 	bi, ok := c.getVersionCmd()
 	if !ok {
 		return errors.New("failed to read build info")
@@ -51,8 +51,8 @@ func (c command) Run(context.Context) error {
 	return nil
 }
 
-// Setup the command
-func (c command) Setup() error {
+// Setup the *command
+func (c *command) Setup() error {
 	c.getVersionCmd = debug.ReadBuildInfo
 	return nil
 }
