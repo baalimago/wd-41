@@ -52,7 +52,7 @@ func formatCommandDescriptions() string {
 	var buf bytes.Buffer
 	w := tabwriter.NewWriter(&buf, 0, 0, 2, ' ', 0)
 	for name, cmd := range commands {
-		fmt.Fprintf(w, "\t%v -\t%v\n", name, cmd.Describe())
+		fmt.Fprintf(w, "\t%v\t%v\n", name, cmd.Describe())
 	}
 	w.Flush()
 	return buf.String()
