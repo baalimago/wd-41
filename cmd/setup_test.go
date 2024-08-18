@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/baalimago/wd-40/cmd/serve"
+	"github.com/baalimago/wd-41/cmd/serve"
 )
 
 func Test_Parse(t *testing.T) {

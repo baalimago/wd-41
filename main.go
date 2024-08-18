@@ -8,7 +8,7 @@ import (
 
 	"github.com/baalimago/go_away_boilerplate/pkg/ancli"
 	"github.com/baalimago/go_away_boilerplate/pkg/shutdown"
-	"github.com/baalimago/wd-40/cmd"
+	"github.com/baalimago/wd-41/cmd"
 )
 
 func printHelp(command cmd.Command, err error, printUsage cmd.UsagePrinter) int {

@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/baalimago/go_away_boilerplate/pkg/testboil"
-	"github.com/baalimago/wd-40/cmd"
+	"github.com/baalimago/wd-41/cmd"
 )
 
 type MockCommand struct {

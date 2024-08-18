@@ -10,7 +10,7 @@ import (
 	"path"
 
 	"github.com/baalimago/go_away_boilerplate/pkg/ancli"
-	"github.com/baalimago/wd-40/internal/wsinject"
+	"github.com/baalimago/wd-41/internal/wsinject"
 	"golang.org/x/net/websocket"
 )
 
@@ -110,7 +110,7 @@ func (c *command) Run(ctx context.Context) error {
 }
 
 func (c *command) Help() string {
-	return "Serve some filesystem. Set the directory as the second argument: wd-40 serve <dir>. If omitted, current wd will be used."
+	return "Serve some filesystem. Set the directory as the second argument: wd-41 serve <dir>. If omitted, current wd will be used."
 }
 
 func (c *command) Describe() string {

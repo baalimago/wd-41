@@ -33,11 +33,11 @@ type Fileserver struct {
 
 var ErrNoHeaderTagFound = errors.New("no header tag found")
 
-const deltaStreamer = `<!-- This script has been injected by wd-40 and allows hot reloads -->
+const deltaStreamer = `<!-- This script has been injected by wd-41 and allows hot reloads -->
 <script type="module" src="delta-streamer.js"></script>`
 
 func NewFileServer(wsPort int, wsPath string) *Fileserver {
-	mirrorDir, err := os.MkdirTemp("", "wd-40_*")
+	mirrorDir, err := os.MkdirTemp("", "wd-41_*")
 	if err != nil {
 		panic(err)
 	}

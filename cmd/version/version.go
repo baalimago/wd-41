@@ -20,7 +20,7 @@ type command struct {
 
 // Describe the version *command
 func (c *command) Describe() string {
-	return "print the version of wd-40"
+	return "print the version of wd-41"
 }
 
 // Flagset for version, currently empty
@@ -30,7 +30,7 @@ func (c *command) Flagset() *flag.FlagSet {
 
 // Help by printing out help
 func (c *command) Help() string {
-	return "Print the version of wd-40"
+	return "Print the version of wd-41"
 }
 
 // Run the *command, printing the version using either the debugbuild or tagged version

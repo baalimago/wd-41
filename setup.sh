@@ -2,7 +2,7 @@
 
 # Function to get the latest release download URL for the specified OS and architecture
 get_latest_release_url() {
-  repo="baalimago/wd-40"
+  repo="baalimago/wd-41"
   os="$1"
   arch="$2"
 
@@ -79,9 +79,9 @@ fi
 printf "OK!\n"
 
 # Move the binary to /usr/local/bin and handle permission errors
-if ! mv "$tmp_file" /usr/local/bin/wd-40; then
-  echo "Failed to move the binary to /usr/local/bin/wd-40, see error above. Try running the script with sudo, or run 'mv $tmp_file <desired-position>'."
+if ! mv "$tmp_file" /usr/local/bin/wd-41; then
+  echo "Failed to move the binary to /usr/local/bin/wd-41, see error above. Try running the script with sudo, or run 'mv $tmp_file <desired-position>'."
   exit 1
 fi
 
-echo "wd-40 installed successfully in /usr/local/bin, try it out with 'wd-40 h'"
+echo "wd-41 installed successfully in /usr/local/bin, try it out with 'wd-41 h'"

@@ -101,9 +101,9 @@ func Test_Setup(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to find delta-streamer.js: %v", err)
 		}
-		// Whatever happens in the delta streamre source code, it should mention wd-40
-		if !strings.Contains(string(b), "wd-40") {
-			t.Fatal("expected delta-streamer.js file to conain string 'wd-40'")
+		// Whatever happens in the delta streamre source code, it should mention wd-41
+		if !strings.Contains(string(b), "wd-41") {
+			t.Fatal("expected delta-streamer.js file to conain string 'wd-41'")
 		}
 	}
 	t.Run("it should write the delta streamer file to root of mirror", func(t *testing.T) {

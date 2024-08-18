@@ -6,8 +6,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/baalimago/wd-40/cmd/serve"
-	"github.com/baalimago/wd-40/cmd/version"
+	"github.com/baalimago/wd-41/cmd/serve"
+	"github.com/baalimago/wd-41/cmd/version"
 )
 
 var commands = map[string]Command{

@@ -9,7 +9,7 @@ jobs:
     uses: baalimago/simple-go-pipeline/.github/workflows/release.yml@v0.2.5
     with:
       go-version: '1.22'
-      project-name: wd-40
+      project-name: wd-41
       branch: main
-      version-var: "github.com/baalimago/wd-40/cmd/version.BUILD_VERSION"
+      version-var: "github.com/baalimago/wd-41/cmd/version.BUILD_VERSION"
 

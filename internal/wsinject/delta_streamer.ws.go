@@ -1,7 +1,7 @@
 package wsinject
 
 const DeltaStreamerSourceCode = `/**
-* This file has been injected by the wd-40 web development
+* This file has been injected by the wd-41 web development
 * hot reload tool. 
 */
 

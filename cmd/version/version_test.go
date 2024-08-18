@@ -15,7 +15,7 @@ func TestCommand(t *testing.T) {
 		t.Fatal("Expected command to be non-nil")
 	}
 
-	if cmd.Describe() != "print the version of wd-40" {
+	if cmd.Describe() != "print the version of wd-41" {
 		t.Fatalf("Unexpected describe: %v", cmd.Describe())
 	}
 
@@ -25,7 +25,7 @@ func TestCommand(t *testing.T) {
 	}
 
 	help := cmd.Help()
-	if help != "Print the version of wd-40" {
+	if help != "Print the version of wd-41" {
 		t.Fatalf("Unexpected help output: %v", help)
 	}
 }
