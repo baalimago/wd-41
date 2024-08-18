@@ -31,6 +31,8 @@ type Fileserver struct {
 	wsDispatcherStartedMu *sync.Mutex
 }
 
+var ErrNoHeaderTagFound = errors.New("no header tag found")
+
 const deltaStreamer = `<!-- This script has been injected by wd-40 and allows hot reloads -->
 <script type="module" src="delta-streamer.js"></script>`
 
@@ -59,7 +61,6 @@ func (fs *Fileserver) mirrorFile(origPath string) error {
 	}
 	injected, injectedBytes, err := injectWebsocketScript(fileB)
 	if err != nil {
-		return fmt.Errorf("failed to ineject websocket script: %v", err)
 	}
 	if injected {
 		ancli.PrintfNotice("injected delta-streamer script loading tag in: '%v'", origPath)
@@ -167,7 +168,7 @@ func injectScript(html []byte, scriptTag string) ([]byte, error) {
 	// Find the location of the closing `</header>` tag
 	idx := strings.Index(htmlStr, "</head>")
 	if idx == -1 {
-		return nil, fmt.Errorf("no </head> tag found in the HTML")
+		return html, ErrNoHeaderTagFound
 	}
 
 	var buf bytes.Buffer
@@ -193,14 +194,20 @@ func injectScript(html []byte, scriptTag string) ([]byte, error) {
 
 func injectWebsocketScript(b []byte) (bool, []byte, error) {
 	contentType := http.DetectContentType(b)
+	injected := false
 	// Only act on html files
 	if !strings.Contains(contentType, "text/html") {
-		return false, b, nil
+		return injected, b, nil
 	}
 	b, err := injectScript(b, deltaStreamer)
+	injected = true
 	if err != nil {
-		return false, nil, fmt.Errorf("failed to inject script tag: %w", err)
+		if !errors.Is(err, ErrNoHeaderTagFound) {
+			return injected, nil, fmt.Errorf("failed to inject script tag: %w", err)
+		} else {
+			injected = false
+		}
 	}
 
-	return true, b, nil
+	return injected, b, nil
 }
