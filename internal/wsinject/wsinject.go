@@ -84,6 +84,10 @@ func (fs *Fileserver) mirrorMaker(p string, info os.DirEntry, err error) error {
 		return err
 	}
 	if info.IsDir() {
+		err = fs.watcher.Add(p)
+		if err != nil {
+			return fmt.Errorf("failed to add recursive path: %v", err)
+		}
 		return nil
 	}
 
@@ -101,7 +105,12 @@ func (fs *Fileserver) writeDeltaStreamerScript() error {
 func (fs *Fileserver) Setup(pathToMaster string) (string, error) {
 	ancli.PrintfNotice("mirroring root: '%v'", pathToMaster)
 	fs.masterPath = pathToMaster
-	err := wsInjectMaster(pathToMaster, fs.mirrorMaker)
+	watcher, err := fsnotify.NewWatcher()
+	fs.watcher = watcher
+	if err != nil {
+		return "", fmt.Errorf("failed to create fsnotify watcher: %w", err)
+	}
+	err = wsInjectMaster(pathToMaster, fs.mirrorMaker)
 	if err != nil {
 		return "", fmt.Errorf("failed to create websocket injected mirror: %v", err)
 	}
@@ -109,15 +118,6 @@ func (fs *Fileserver) Setup(pathToMaster string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to write delta streamer file: %w", err)
 	}
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		return "", fmt.Errorf("failed to create fsnotify watcher: %w", err)
-	}
-	err = watcher.Add(pathToMaster)
-	if err != nil {
-		return "", fmt.Errorf("failed to add path: '%v' to watcher, err: %v", pathToMaster, err)
-	}
-	fs.watcher = watcher
 	return fs.mirrorPath, nil
 }
 
@@ -149,7 +149,7 @@ func (fs *Fileserver) notifyPageUpdate(fileName string) {
 
 func (fs *Fileserver) handleFileEvent(fsEv fsnotify.Event) {
 	if fsEv.Has(fsnotify.Write) {
-		ancli.PrintfNotice("noticed file write in orig file: '%v',", fsEv.Name)
+		ancli.PrintfNotice("noticed file write in orig file: '%v'", fsEv.Name)
 		fs.mirrorFile(fsEv.Name)
 		fs.notifyPageUpdate(fsEv.Name)
 	}
