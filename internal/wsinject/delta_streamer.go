@@ -18,39 +18,31 @@ func (fs *Fileserver) WsHandler(ws *websocket.Conn) {
 	go func() {
 		ancli.PrintfOK("new websocket connection: '%v'", ws.Config().Origin)
 		for {
-			select {
-			case pageToReload, ok := <-reloadChan:
-				if !ok {
-					killChan <- struct{}{}
-				}
-				err := websocket.Message.Send(ws, pageToReload)
-				if err != nil {
-					// Exit on error
-					ancli.PrintfErr("ws: failed to send message via ws: %v", err)
-					killChan <- struct{}{}
-				}
+			pageToReload, ok := <-reloadChan
+			if !ok {
+				killChan <- struct{}{}
+			}
+			err := websocket.Message.Send(ws, pageToReload)
+			if err != nil {
+				// Exit on error
+				ancli.PrintfErr("ws: failed to send message via ws: %v", err)
+				killChan <- struct{}{}
 			}
 		}
 	}()
 
 	ancli.PrintOK("Listening to file changes on pageReloadChan")
 	fs.registerWs(name, reloadChan)
-	for {
-		select {
-		case <-killChan:
-			ancli.PrintOK("websocket disconnected")
-			fs.deregisterWs(name)
-			err := ws.WriteClose(1005)
-			if err != nil {
-				ancli.PrintfErr("ws-listener: '%v' got err when writeclosing: %v", name, err)
-			}
-			err = ws.Close()
-			if err != nil {
-				ancli.PrintfErr("ws-listener: '%v' got err when closing: %v", name, err)
-			}
-
-			return
-		}
+	<-killChan
+	ancli.PrintOK("websocket disconnected")
+	fs.deregisterWs(name)
+	err := ws.WriteClose(1005)
+	if err != nil {
+		ancli.PrintfErr("ws-listener: '%v' got err when writeclosing: %v", name, err)
+	}
+	err = ws.Close()
+	if err != nil {
+		ancli.PrintfErr("ws-listener: '%v' got err when closing: %v", name, err)
 	}
 }
 
@@ -69,26 +61,24 @@ func (fs *Fileserver) deregisterWs(name string) {
 
 func (fs *Fileserver) wsDispatcherStart() {
 	for {
-		select {
-		case pageToReload, ok := <-fs.pageReloadChan:
-			if !ok {
-				ancli.PrintNotice("stopping wsDispatcher")
-				fs.wsDispatcher.Range(func(key, value any) bool {
-					ancli.PrintfNotice("sending to: '%v'", key)
-					wsWriterChan := value.(chan string)
-					// Close chan to stop the wsRoutine
-					close(wsWriterChan)
-					return true
-				})
-				return
-			}
-			ancli.PrintfNotice("got update: '%v'", pageToReload)
+		pageToReload, ok := <-fs.pageReloadChan
+		if !ok {
+			ancli.PrintNotice("stopping wsDispatcher")
 			fs.wsDispatcher.Range(func(key, value any) bool {
 				ancli.PrintfNotice("sending to: '%v'", key)
 				wsWriterChan := value.(chan string)
-				wsWriterChan <- pageToReload
+				// Close chan to stop the wsRoutine
+				close(wsWriterChan)
 				return true
 			})
+			return
 		}
+		ancli.PrintfNotice("got update: '%v'", pageToReload)
+		fs.wsDispatcher.Range(func(key, value any) bool {
+			ancli.PrintfNotice("sending to: '%v'", key)
+			wsWriterChan := value.(chan string)
+			wsWriterChan <- pageToReload
+			return true
+		})
 	}
 }

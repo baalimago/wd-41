@@ -17,7 +17,7 @@ var commands = map[string]Command{
 
 func Parse(args []string) (Command, error) {
 	if len(args) == 1 {
-		return nil, NoArgsError
+		return nil, ErrNoArgs
 	}
 	cmdCandidate := ""
 	for _, arg := range args[1:] {

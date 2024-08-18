@@ -57,7 +57,7 @@ func Test_printHelp_ExitCodes(t *testing.T) {
 		{
 			name:     "it should exit with code 0 on HelpfulError",
 			command:  mCmd,
-			err:      cmd.HelpfulError,
+			err:      cmd.ErrHelpful,
 			expected: 0,
 		},
 		{
@@ -86,7 +86,7 @@ func Test_printHelp_output(t *testing.T) {
 		}
 		got := testboil.CaptureStdout(t, func(t *testing.T) {
 			t.Helper()
-			printHelp(mCmd, cmd.HelpfulError, func() {})
+			printHelp(mCmd, cmd.ErrHelpful, func() {})
 		})
 		// add the printline since we actually want a newline at end
 		want = want + "\n"
@@ -118,7 +118,6 @@ func Test_printHelp_output(t *testing.T) {
 			t.Fatalf("expected stdout to contain: '%v', got out: '%v'", wantErr, gotStdErr)
 		}
 	})
-
 }
 
 func Test_Run_ExitCodes(t *testing.T) {

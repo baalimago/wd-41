@@ -45,11 +45,10 @@ func Test_Parse(t *testing.T) {
 
 	t.Run("it should return NoArgsError on lack of second argument", func(t *testing.T) {
 		_, gotErr := Parse([]string{"/some/cli/path"})
-		if !errors.Is(gotErr, NoArgsError) {
+		if !errors.Is(gotErr, ErrNoArgs) {
 			t.Fatalf("expected to get HelpfulError, got: %v", gotErr)
 		}
 	})
-
 }
 
 func TestFormatCommandDescriptions(t *testing.T) {

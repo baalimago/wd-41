@@ -13,7 +13,6 @@ import (
 )
 
 func TestWsHandler(t *testing.T) {
-
 	ancli.Newline = true
 	setup := func(t *testing.T) (*Fileserver, *websocket.Config, *httptest.Server) {
 		t.Helper()
@@ -110,7 +109,7 @@ func TestWsHandler(t *testing.T) {
 		for want != 2 {
 			select {
 			case <-time.After(time.Second):
-				t.Fatal("failed to recieve data from websocket")
+				t.Fatal("failed to receive data from websocket")
 			case got := <-gotMsgChan:
 				want += 1
 				t.Logf("got message from mocked ws client: %v", got)
@@ -121,5 +120,4 @@ func TestWsHandler(t *testing.T) {
 		close(fs.pageReloadChan)
 		mu.Unlock()
 	})
-
 }

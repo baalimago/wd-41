@@ -66,11 +66,11 @@ func (fs *Fileserver) mirrorFile(origPath string) error {
 	}
 	mirroredPath := path.Join(fs.mirrorPath, relativePath)
 	relativePathDir := path.Dir(mirroredPath)
-	err = os.MkdirAll(relativePathDir, 0755)
+	err = os.MkdirAll(relativePathDir, 0o755)
 	if err != nil {
 		return fmt.Errorf("failed to create relative dir: '%v', error: %v", relativePathDir, err)
 	}
-	err = os.WriteFile(mirroredPath, injectedBytes, 0755)
+	err = os.WriteFile(mirroredPath, injectedBytes, 0o755)
 	if err != nil {
 		return fmt.Errorf("failed to write mirrored file: %w", err)
 	}
@@ -89,7 +89,7 @@ func (fs *Fileserver) mirrorMaker(p string, info os.DirEntry, err error) error {
 }
 
 func (fs *Fileserver) writeDeltaStreamerScript() error {
-	err := os.WriteFile(path.Join(fs.mirrorPath, "delta-streamer.js"), []byte(fmt.Sprintf(DeltaStreamerSourceCode, fs.wsPort, fs.wsPath)), 0755)
+	err := os.WriteFile(path.Join(fs.mirrorPath, "delta-streamer.js"), []byte(fmt.Sprintf(DeltaStreamerSourceCode, fs.wsPort, fs.wsPath)), 0o755)
 	if err != nil {
 		return fmt.Errorf("failed to write delta-streamer.js: %w", err)
 	}
@@ -179,13 +179,11 @@ func injectScript(html []byte, scriptTag string) ([]byte, error) {
 	}
 
 	_, err = buf.WriteString(scriptTag)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to write script tag: %w", err)
 	}
 
 	_, err = buf.WriteString(htmlStr[idx:])
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to write post: %w", err)
 	}

@@ -23,8 +23,10 @@ type Command interface {
 	Flagset() *flag.FlagSet
 }
 
-type ArgParser func([]string) (Command, error)
-type UsagePrinter func()
+type (
+	ArgParser    func([]string) (Command, error)
+	UsagePrinter func()
+)
 
 type ArgNotFoundError string
 
@@ -32,5 +34,7 @@ func (e ArgNotFoundError) Error() string {
 	return fmt.Sprintf("'%v' is not a valid argument\n", string(e))
 }
 
-var HelpfulError = errors.New("user needs help")
-var NoArgsError = errors.New("no arguments found")
+var (
+	ErrHelpful = errors.New("user needs help")
+	ErrNoArgs  = errors.New("no arguments found")
+)

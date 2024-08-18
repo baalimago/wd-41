@@ -15,15 +15,18 @@ func Test_walkDir(t *testing.T) {
 		var got []string
 		want := []string{"t0", "t1", "t2"}
 		tmpDir := t.TempDir()
-		os.WriteFile(path.Join(tmpDir, "t0"), []byte("t0"), 0644)
-		os.WriteFile(path.Join(tmpDir, "t1"), []byte("t1"), 0644)
+		os.WriteFile(path.Join(tmpDir, "t0"), []byte("t0"), 0o644)
+		os.WriteFile(path.Join(tmpDir, "t1"), []byte("t1"), 0o644)
 		nestedDir, err := os.MkdirTemp(tmpDir, "dir0_*")
 		if err != nil {
 			t.Fatalf("failed to create temp dir: %v", err)
 		}
-		os.WriteFile(path.Join(nestedDir, "t2"), []byte("t2"), 0644)
+		os.WriteFile(path.Join(nestedDir, "t2"), []byte("t2"), 0o644)
 
 		wsInjectMaster(tmpDir, func(path string, d os.DirEntry, err error) error {
+			if err != nil {
+				t.Fatalf("got err during traversal: %v", err)
+			}
 			if d.IsDir() {
 				return nil
 			}
@@ -33,7 +36,6 @@ func Test_walkDir(t *testing.T) {
 			}
 			got = append(got, string(b))
 			return nil
-
 		})
 
 		slices.Sort(got)
@@ -41,7 +43,6 @@ func Test_walkDir(t *testing.T) {
 		if !slices.Equal(got, want) {
 			t.Fatalf("expected: %v, got: %v", want, got)
 		}
-
 	})
 }
 
@@ -62,14 +63,14 @@ func Test_Setup(t *testing.T) {
 	tmpDir := t.TempDir()
 	ancli.Newline = true
 	fileName := "t0.html"
-	os.WriteFile(path.Join(tmpDir, fileName), []byte(mockHtml), 0777)
+	os.WriteFile(path.Join(tmpDir, fileName), []byte(mockHtml), 0o777)
 	nestedDir := path.Join(tmpDir, "nested")
-	err := os.MkdirAll(nestedDir, 0777)
+	err := os.MkdirAll(nestedDir, 0o777)
 	if err != nil {
 		t.Fatalf("failed to create temp dir: %v", err)
 	}
 	nestedFile := path.Join(nestedDir, "nested.html")
-	os.WriteFile(nestedFile, []byte(mockHtml), 0777)
+	os.WriteFile(nestedFile, []byte(mockHtml), 0o777)
 	fs := NewFileServer(8080, "/delta-streamer-ws.js")
 	_, err = fs.Setup(tmpDir)
 	if err != nil {
@@ -109,5 +110,4 @@ func Test_Setup(t *testing.T) {
 		mirrorFilePath := path.Join(fs.mirrorPath, "delta-streamer.js")
 		checkIfDeltaStreamerExists(t, mirrorFilePath)
 	})
-
 }

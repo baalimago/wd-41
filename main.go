@@ -16,9 +16,9 @@ func printHelp(command cmd.Command, err error, printUsage cmd.UsagePrinter) int 
 	if errors.As(err, &notValidArg) {
 		ancli.PrintErr(err.Error())
 		printUsage()
-	} else if errors.Is(err, cmd.NoArgsError) {
+	} else if errors.Is(err, cmd.ErrNoArgs) {
 		printUsage()
-	} else if errors.Is(err, cmd.HelpfulError) {
+	} else if errors.Is(err, cmd.ErrHelpful) {
 		fmt.Println(command.Help())
 		return 0
 	} else {
