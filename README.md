@@ -20,15 +20,14 @@ curl -fsSL https://raw.githubusercontent.com/baalimago/wd-40/main/setup.sh | sh
 ```
 
 ## Architecture
-1. First the content of the website is copied to a temporary directory
-1. At every file, the MIME type is inspected, if it's text/html, a `delta-streamer.js` script is injected
+1. First the content of the website is copied to a temporary directory, this is the _mirrored content_ 
+1. Every mirrored file is inspectd for type, if it's text/html, a `delta-streamer.js` script is injected
 1. The web server is started, hosting the _mirrored_ content
-1. The `delta-streamer.js` in turn sets up a websocket connection to wd-40
+1. The `delta-streamer.js` in turn sets up a websocket connection to the wd-40 webserver
 1. The original file system is monitored, on any file changes:
-    1. the new file is copied to the mirror
+    1. the new file is copied to the mirror (including injections)
     1. the file name is propagated to the browser via the websocket
-    1. if the browser's origin matches the recently updated file, the browser is told to reload via javascript
-
+1. The `delta-streamer.js` script then checks if the current window origin is the updated file. If so, it reloads the page.
 ```
        ┌───────────────┐                                                 
        │ Web Developer │                                                 
