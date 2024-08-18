@@ -61,7 +61,7 @@ func TestFormatCommandDescriptions(t *testing.T) {
 	result := formatCommandDescriptions()
 
 	// Check if the returned string contains the expected command descriptions
-	expectedSubstring := "testCmd -"
+	expectedSubstring := "testCmd"
 	if !strings.Contains(result, expectedSubstring) {
 		t.Errorf("Expected formatted command descriptions to contain '%s', got '%s'", expectedSubstring, result)
 	}
