@@ -19,7 +19,11 @@ func printHelp(command cmd.Command, err error, printUsage cmd.UsagePrinter) int 
 	} else if errors.Is(err, cmd.ErrNoArgs) {
 		printUsage()
 	} else if errors.Is(err, cmd.ErrHelpful) {
-		fmt.Println(command.Help())
+		if command != nil {
+			fmt.Println(command.Help())
+		} else {
+			printUsage()
+		}
 		return 0
 	} else {
 		ancli.PrintfErr("unknown error: %v", err.Error())

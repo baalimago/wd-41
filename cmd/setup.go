@@ -21,6 +21,9 @@ func Parse(args []string) (Command, error) {
 	}
 	cmdCandidate := ""
 	for _, arg := range args[1:] {
+		if isHelp(arg) {
+			return nil, ErrHelpful
+		}
 		isFlag := strings.HasPrefix(arg, "-")
 		if isFlag {
 			continue
@@ -39,6 +42,10 @@ func Parse(args []string) (Command, error) {
 	}
 
 	return nil, ArgNotFoundError(cmdCandidate)
+}
+
+func isHelp(s string) bool {
+	return s == "-h" || s == "-help" || s == "h" || s == "help"
 }
 
 func formatCommandDescriptions() string {

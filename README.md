@@ -9,6 +9,16 @@ This is a very simple static webserver which hot-reloads your web-browser on cha
 ## Usage
 `wd-40 s|serve <relative directory>` or `wd-40 s|serve`
 
+## Getting started
+```bash
+go install github.com/baalimago/wd-40@latest
+```
+
+You may also use the setup script:
+```bash
+curl -fsSL https://raw.githubusercontent.com/baalimago/wd-40/main/setup.sh | sh
+```
+
 ## Architecture
 1. First the content of the website is copied to a temporary directory
 1. At every file, the MIME type is inspected, if it's text/html, a `delta-streamer.js` script is injected
