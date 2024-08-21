@@ -1,13 +1,18 @@
 package wsinject
 
 import (
+	"context"
+	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/baalimago/go_away_boilerplate/pkg/ancli"
+	"github.com/baalimago/go_away_boilerplate/pkg/testboil"
 )
 
 func Test_walkDir(t *testing.T) {
@@ -109,5 +114,106 @@ func Test_Setup(t *testing.T) {
 	t.Run("it should write the delta streamer file to root of mirror", func(t *testing.T) {
 		mirrorFilePath := path.Join(fs.mirrorPath, "delta-streamer.js")
 		checkIfDeltaStreamerExists(t, mirrorFilePath)
+	})
+}
+
+type testFileSystem struct {
+	root             string
+	rootDirFilePaths []string
+	nestedDir        string
+}
+
+func (tfs *testFileSystem) addRootFile(t *testing.T, suffix string) string {
+	t.Helper()
+	fileName := fmt.Sprintf("file_%v%v", len(tfs.rootDirFilePaths), suffix)
+	path := path.Join(tfs.root, fileName)
+	err := os.WriteFile(path, []byte(mockHtml), 0o777)
+	if err != nil {
+		t.Fatalf("failed to write root file: %v", err)
+	}
+	tfs.rootDirFilePaths = append(tfs.rootDirFilePaths, path)
+	return path
+}
+
+func Test_Start(t *testing.T) {
+	setup := func(t *testing.T) (*Fileserver, testFileSystem) {
+		t.Helper()
+		tmpDir := t.TempDir()
+		ancli.Newline = true
+		nestedDir := path.Join(tmpDir, "nested")
+		err := os.MkdirAll(nestedDir, 0o777)
+		if err != nil {
+			t.Fatalf("failed to create temp dir: %v", err)
+		}
+		return NewFileServer(8080, "/delta-streamer-ws.js"), testFileSystem{
+			root:      tmpDir,
+			nestedDir: nestedDir,
+		}
+	}
+
+	t.Run("it should break on context cancel", func(t *testing.T) {
+		fs, _ := setup(t)
+		_, err := fs.Setup(t.TempDir())
+		if err != nil {
+			t.Fatalf("failed ot setup test fileserver: %v", err)
+		}
+		testboil.ReturnsOnContextCancel(t, func(ctx context.Context) {
+			fs.Start(ctx)
+		}, time.Second)
+	})
+
+	t.Run("file changes", func(t *testing.T) {
+		setupReadyFs := func(t *testing.T) (testFileSystem, chan error, chan string, context.Context) {
+			t.Helper()
+			fs, testFileSystem := setup(t)
+			testFileSystem.addRootFile(t, "")
+			fs.Setup(testFileSystem.root)
+			refreshChan := make(chan string)
+			fs.registerWs("mock", refreshChan)
+			timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Second)
+			t.Cleanup(cancel)
+			earlyFail := make(chan error, 1)
+			awaitFsStart := make(chan struct{})
+			go func() {
+				close(awaitFsStart)
+				err := fs.Start(timeoutCtx)
+				if err != nil {
+					earlyFail <- err
+				}
+			}()
+
+			<-awaitFsStart
+			// Give the Start a moment to actually start, not just the routine
+			time.Sleep(time.Millisecond)
+			return testFileSystem, earlyFail, refreshChan, timeoutCtx
+		}
+
+		t.Run("it should send a reload event on file changes", func(t *testing.T) {
+			testFileSystem, earlyFail, refreshChan, timeoutCtx := setupReadyFs(t)
+			testFile := testFileSystem.rootDirFilePaths[0]
+			os.WriteFile(testFile, []byte("changes!"), 0o755)
+
+			select {
+			case err := <-earlyFail:
+				t.Fatalf("start failed: %v", err)
+			case got := <-refreshChan:
+				testboil.FailTestIfDiff(t, got, "/"+filepath.Base(testFile))
+			case <-timeoutCtx.Done():
+				t.Fatal("failed to recieve refresh within time")
+			}
+		})
+
+		t.Run("it should send a reload event on file additions", func(t *testing.T) {
+			testFileSystem, earlyFail, refreshChan, timeoutCtx := setupReadyFs(t)
+			testFile := testFileSystem.addRootFile(t, "")
+			select {
+			case err := <-earlyFail:
+				t.Fatalf("start failed: %v", err)
+			case got := <-refreshChan:
+				testboil.FailTestIfDiff(t, got, "/"+filepath.Base(testFile))
+			case <-timeoutCtx.Done():
+				t.Fatal("failed to recieve refresh within time")
+			}
+		})
 	})
 }
