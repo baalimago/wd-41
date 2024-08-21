@@ -4,7 +4,7 @@
 
 Test coverage: 73.640% 😌👏
 
-This is a very simple static webserver which live reloads your web-browser on changes to the hosted files.
+This is a simple static webserver which live reloads your web-browser on changes to the hosted files.
 
 ## Usage
 `wd-41 s|serve <relative directory>` or `wd-41 s|serve`
