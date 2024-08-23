@@ -139,7 +139,6 @@ func Test_Start(t *testing.T) {
 	setup := func(t *testing.T) (*Fileserver, testFileSystem) {
 		t.Helper()
 		tmpDir := t.TempDir()
-		ancli.Newline = true
 		nestedDir := path.Join(tmpDir, "nested")
 		err := os.MkdirAll(nestedDir, 0o777)
 		if err != nil {
