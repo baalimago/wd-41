@@ -76,7 +76,7 @@ func Test_Setup(t *testing.T) {
 	}
 	nestedFile := path.Join(nestedDir, "nested.html")
 	os.WriteFile(nestedFile, []byte(mockHtml), 0o777)
-	fs := NewFileServer(8080, "/delta-streamer-ws.js")
+	fs := NewFileServer(8080, "/delta-streamer-ws.js", false)
 	_, err = fs.Setup(tmpDir)
 	if err != nil {
 		t.Fatalf("failed to setup: %v", err)
@@ -139,13 +139,12 @@ func Test_Start(t *testing.T) {
 	setup := func(t *testing.T) (*Fileserver, testFileSystem) {
 		t.Helper()
 		tmpDir := t.TempDir()
-		ancli.Newline = true
 		nestedDir := path.Join(tmpDir, "nested")
 		err := os.MkdirAll(nestedDir, 0o777)
 		if err != nil {
 			t.Fatalf("failed to create temp dir: %v", err)
 		}
-		return NewFileServer(8080, "/delta-streamer-ws.js"), testFileSystem{
+		return NewFileServer(8080, "/delta-streamer-ws.js", false), testFileSystem{
 			root:      tmpDir,
 			nestedDir: nestedDir,
 		}

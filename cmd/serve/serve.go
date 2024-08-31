@@ -23,12 +23,13 @@ type Fileserver interface {
 type command struct {
 	binPath string
 	// master, as in adjective 'master record' non-slavery kind
-	masterPath string
-	mirrorPath string
-	port       *int
-	wsPath     *string
-	flagset    *flag.FlagSet
-	fileserver Fileserver
+	masterPath  string
+	mirrorPath  string
+	port        *int
+	wsPath      *string
+	forceReload *bool
+	flagset     *flag.FlagSet
+	fileserver  Fileserver
 }
 
 func Command() *command {
@@ -52,7 +53,7 @@ func (c *command) Setup() error {
 	c.masterPath = path.Clean(relPath)
 
 	if c.masterPath != "" {
-		c.fileserver = wsinject.NewFileServer(*c.port, *c.wsPath)
+		c.fileserver = wsinject.NewFileServer(*c.port, *c.wsPath, *c.forceReload)
 		mirrorPath, err := c.fileserver.Setup(c.masterPath)
 		if err != nil {
 			return fmt.Errorf("failed to setup websocket injected mirror filesystem: %v", err)
@@ -121,6 +122,7 @@ func (c *command) Flagset() *flag.FlagSet {
 	fs := flag.NewFlagSet("server", flag.ExitOnError)
 	c.port = fs.Int("port", 8080, "port to serve http server on")
 	c.wsPath = fs.String("wsPort", "/delta-streamer-ws", "the path which the delta streamer websocket should be hosted on")
+	c.forceReload = fs.Bool("forceReload", false, "set to true if you wish to reload all attached browser pages on any file change")
 	c.flagset = fs
 	return fs
 }

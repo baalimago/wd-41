@@ -1,6 +1,6 @@
 package wsinject
 
-const DeltaStreamerSourceCode = `/**
+const deltaStreamerSourceCode = `/**
 * This file has been injected by the wd-41 web development
 * hot reload tool. 
 */
@@ -33,7 +33,11 @@ function startWebsocket() {
     if(event.data === fileName ||
       // Always reload on js and css files since its difficult to know where these are used
       event.data.includes(".js") ||
-      event.data.includes(".css")) {
+      event.data.includes(".css") ||
+      // This funny-looking comparison is set using string interpolation from the -forceReload flag
+      // when writing this script
+      %v === true
+      ) {
       location.reload();
     }
   });
