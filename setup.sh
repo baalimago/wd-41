@@ -13,7 +13,7 @@ get_latest_release_url() {
   download_url=$(echo "$release_data" | grep "browser_download_url" | grep "$os" | grep "$arch" | cut -d '"' -f 4)
 
   echo "$download_url"
-}
+} 
 
 # Detect the OS
 case "$(uname)" in
@@ -78,10 +78,16 @@ if ! chmod +x "$tmp_file"; then
 fi
 printf "OK!\n"
 
-# Move the binary to /usr/local/bin and handle permission errors
-if ! mv "$tmp_file" /usr/local/bin/wd-41; then
-  echo "Failed to move the binary to /usr/local/bin/wd-41, see error above. Try running the script with sudo, or run 'mv $tmp_file <desired-position>'."
+# Move the binary to standard XDG location and handle permission errors
+INSTALL_DIR=$HOME/.local/bin
+# If run as 'sudo', install to /usr/local/bin for systemwide use
+if [ $EUID -eq 0 ]; then
+	INSTALL_DIR=/usr/local/bin
+fi
+
+if ! mv "$tmp_file" $INSTALL_DIR/wd-41; then
+  echo "Failed to move the binary to $INSTALL_DIR/wd-41, see error above. Try making sure you have write permission there, or run 'mv $tmp_file <desired-position>'."
   exit 1
 fi
 
-echo "wd-41 installed successfully in /usr/local/bin, try it out with 'wd-41 h'"
+echo "wd-41 installed successfully in $INSTALL_DIR, try it out with 'wd-41 h'"
