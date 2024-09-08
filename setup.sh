@@ -81,8 +81,10 @@ printf "OK!\n"
 # Move the binary to standard XDG location and handle permission errors
 INSTALL_DIR=$HOME/.local/bin
 # If run as 'sudo', install to /usr/local/bin for systemwide use
-if [ $EUID -eq 0 ]; then
-	INSTALL_DIR=/usr/local/bin
+if [ -x /usr/bin/id ]; then
+    if [ `/usr/bin/id -u` -eq 0 ]; then
+            INSTALL_DIR=/usr/local/bin
+    fi
 fi
 
 if ! mv "$tmp_file" $INSTALL_DIR/wd-41; then
