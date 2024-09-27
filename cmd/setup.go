@@ -63,7 +63,7 @@ const usage = `== Web Development 41 ==
 This tool is designed to enable live reload for statically hosted web development.
 It injects a websocket script in a mirrored version of html pages
 and uses the fsnotify (cross-platform 'inotify' wrapper) package to detect filechanges.
-On filechanges, the websocket will trigger a reload of the page. 
+On filechanges, the websocket will trigger a reload of the page.
 
 The 41 (formerly "40", before I got spooked by potential lawyers) is only 
 to enable rust-repellant properties.
