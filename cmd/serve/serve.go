@@ -30,6 +30,8 @@ type command struct {
 	forceReload *bool
 	flagset     *flag.FlagSet
 	fileserver  Fileserver
+
+	cacheControl *string
 }
 
 func Command() *command {
@@ -68,6 +70,7 @@ func (c *command) Run(ctx context.Context) error {
 	mux := http.NewServeMux()
 	fsh := http.FileServer(http.Dir(c.mirrorPath))
 	fsh = slogHandler(fsh)
+	fsh = cacheHandler(fsh, *c.cacheControl)
 	mux.Handle("/", fsh)
 
 	ancli.PrintfOK("setting up websocket host on path: '%v'", *c.wsPath)
@@ -123,6 +126,7 @@ func (c *command) Flagset() *flag.FlagSet {
 	c.port = fs.Int("port", 8080, "port to serve http server on")
 	c.wsPath = fs.String("wsPort", "/delta-streamer-ws", "the path which the delta streamer websocket should be hosted on")
 	c.forceReload = fs.Bool("forceReload", false, "set to true if you wish to reload all attached browser pages on any file change")
+	c.cacheControl = fs.String("cacheControl", "no-cache", "set to configure the cache-control header")
 	c.flagset = fs
 	return fs
 }

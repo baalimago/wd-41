@@ -2,12 +2,13 @@ package serve
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/baalimago/go_away_boilerplate/pkg/ancli"
+	"github.com/baalimago/go_away_boilerplate/pkg/testboil"
 	"golang.org/x/net/websocket"
 )
 
@@ -48,6 +49,25 @@ func Test_Setup(t *testing.T) {
 			t.Fatalf("expected: %v, got: %v", want, got)
 		}
 	})
+
+	t.Run("it should set cacheControl arg", func(t *testing.T) {
+		want := "test"
+		c := command{}
+		givenArgs := []string{"-cacheControl", want}
+		err := c.Flagset().Parse(givenArgs)
+		if err != nil {
+			t.Fatalf("failed to parse flagset: %v", err)
+		}
+		err = c.Setup()
+		if err != nil {
+			t.Fatalf("failed to setup: %v", err)
+		}
+
+		got := *c.cacheControl
+		if got != want {
+			t.Fatalf("expected: %v, got: %v", want, got)
+		}
+	})
 }
 
 type mockFileServer struct{}
@@ -64,56 +84,86 @@ func (m *mockFileServer) Start(ctx context.Context) error {
 func (m *mockFileServer) WsHandler(ws *websocket.Conn) {}
 
 func TestRun(t *testing.T) {
-	ancli.Newline = true
-	cmd := command{}
-	cmd.fileserver = &mockFileServer{}
-	fs := cmd.Flagset()
-	fs.Parse([]string{"--port=8081", "--wsPort=/test-ws"})
+	setup := func() command {
+		cmd := command{}
+		cmd.fileserver = &mockFileServer{}
+		fs := cmd.Flagset()
+		fs.Parse([]string{"--port=8081", "--wsPort=/test-ws"})
 
-	err := cmd.Setup()
-	if err != nil {
-		t.Fatalf("Setup failed: %v", err)
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// Run the server in a separate goroutine
-	go func() {
-		err := cmd.Run(ctx)
+		err := cmd.Setup()
 		if err != nil {
-			t.Errorf("Run returned error: %v", err)
+			t.Fatalf("Setup failed: %v", err)
 		}
-	}()
-
-	time.Sleep(time.Second)
-
-	// Test if the HTTP server is working
-	resp, err := http.Get("http://localhost:8081/")
-	if err != nil {
-		t.Fatalf("Failed to send GET request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("Expected status OK, got: %v", resp.Status)
+		return cmd
 	}
 
-	// Test the websocket handler
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		s := websocket.Server{Handler: cmd.fileserver.WsHandler}
-		s.ServeHTTP(w, r)
-	}))
-	defer server.Close()
+	t.Run("it should setup websocket handler on wsPort", func(t *testing.T) {
+		cmd := setup()
+		ctx, ctxCancel := context.WithCancel(context.Background())
 
-	wsURL := "ws" + server.URL[len("http"):]
-	ws, err := websocket.Dial(wsURL+"/test-ws", "", "http://localhost/")
-	if err != nil {
-		t.Fatalf("websocket dial failed: %v", err)
-	}
-	defer ws.Close()
+		ready := make(chan struct{})
+		go func() {
+			close(ready)
+			err := cmd.Run(ctx)
+			if err != nil {
+				t.Errorf("Run returned error: %v", err)
+			}
+		}()
 
-	// Cleanup
-	cancel()
-	time.Sleep(time.Second)
+		t.Cleanup(ctxCancel)
+
+		<-ready
+		// Test if the HTTP server is working
+		resp, err := http.Get("http://localhost:8081/")
+		if err != nil {
+			t.Fatalf("Failed to send GET request: %v", err)
+		}
+		t.Cleanup(func() { resp.Body.Close() })
+
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("Expected status OK, got: %v", resp.Status)
+		}
+
+		// Test the websocket handler
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			s := websocket.Server{Handler: cmd.fileserver.WsHandler}
+			s.ServeHTTP(w, r)
+		}))
+
+		t.Cleanup(func() { server.Close() })
+
+		wsURL := "ws" + server.URL[len("http"):]
+		ws, err := websocket.Dial(wsURL+"/test-ws", "", "http://localhost/")
+		if err != nil {
+			t.Fatalf("websocket dial failed: %v", err)
+		}
+		t.Cleanup(func() { ws.Close() })
+	})
+
+	t.Run("it should respond with correct cache control", func(t *testing.T) {
+		cmd := setup()
+		ctx, ctxCancel := context.WithCancel(context.Background())
+		t.Cleanup(ctxCancel)
+		want := "test"
+		port := 13337
+		cmd.cacheControl = &want
+		cmd.port = &port
+
+		ready := make(chan struct{})
+		go func() {
+			close(ready)
+			err := cmd.Run(ctx)
+			if err != nil {
+				t.Errorf("Run returned error: %v", err)
+			}
+		}()
+		<-ready
+		time.Sleep(time.Millisecond)
+		resp, err := http.Get(fmt.Sprintf("http://localhost:%v", port))
+		if err != nil {
+			t.Fatal(err)
+		}
+		got := resp.Header.Get("Cache-Control")
+		testboil.FailTestIfDiff(t, got, want)
+	})
 }
