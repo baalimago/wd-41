@@ -24,20 +24,20 @@ function startWebsocket() {
   socket.addEventListener('message', function (event) {
     console.log('Message from server:', event.data);
     let fileName = window.location.pathname.split('/').pop();
-    if(fileName === "") {
+    if (fileName === "") {
       fileName = "/index.html"
     } else {
       fileName = "/" + fileName
     }
     // Reload page if it's detected that the current page has been altered
-    if(event.data === fileName ||
+    if (event.data === fileName ||
       // Always reload on js and css files since its difficult to know where these are used
       event.data.includes(".js") ||
       event.data.includes(".css") ||
       // This funny-looking comparison is set using string interpolation from the -forceReload flag
       // when writing this script
-      %v === true
-      ) {
+      % v === true
+    ) {
       location.reload();
     }
   });
@@ -45,14 +45,16 @@ function startWebsocket() {
   // Event handler for when the WebSocket connection is closed
   socket.addEventListener('close', function (event) {
     console.log('Disconnected from the WebSocket server');
+    // The socket is dead. Let's make a new one (and keep trying until wd-41 backend
+    // process is back up again)
+    startWebsocket()
   });
 
   // Event handler for when an error occurs with the WebSocket connection
   socket.addEventListener('error', function (event) {
     console.error('WebSocket error:', event);
-    console.error(event.message)
+    console.error(event.message);
   });
 }
 
-startWebsocket();
-`
+startWebsocket();`
