@@ -31,7 +31,8 @@ type command struct {
 	flagset     *flag.FlagSet
 	fileserver  Fileserver
 
-	cacheControl *string
+	cacheControl    *string
+	certificatePath *string
 }
 
 func Command() *command {
@@ -127,6 +128,7 @@ func (c *command) Flagset() *flag.FlagSet {
 	c.wsPath = fs.String("wsPort", "/delta-streamer-ws", "the path which the delta streamer websocket should be hosted on")
 	c.forceReload = fs.Bool("forceReload", false, "set to true if you wish to reload all attached browser pages on any file change")
 	c.cacheControl = fs.String("cacheControl", "no-cache", "set to configure the cache-control header")
+	c.certificatePath = fs.String("certPath", "", "set to some existing cert which should be used for TLS (https)")
 	c.flagset = fs
 	return fs
 }

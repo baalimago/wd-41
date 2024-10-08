@@ -166,4 +166,30 @@ func TestRun(t *testing.T) {
 		got := resp.Header.Get("Cache-Control")
 		testboil.FailTestIfDiff(t, got, want)
 	})
+
+	t.Run("it should serve with tls if cert is specified", func(t *testing.T) {
+		cmd := setup()
+		ctx, ctxCancel := context.WithCancel(context.Background())
+		t.Cleanup(ctxCancel)
+		port := 13337
+		cmd.port = &port
+		cmd.certificatePath = "TODO"
+
+		ready := make(chan struct{})
+		go func() {
+			close(ready)
+			err := cmd.Run(ctx)
+			if err != nil {
+				t.Errorf("Run returned error: %v", err)
+			}
+		}()
+		<-ready
+		time.Sleep(time.Millisecond)
+		resp, err := http.Get(fmt.Sprintf("http://localhost:%v", port))
+		if err != nil {
+			t.Fatal(err)
+		}
+		got := resp.Header.Get("Cache-Control")
+		testboil.FailTestIfDiff(t, got, want)
+	})
 }
