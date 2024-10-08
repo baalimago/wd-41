@@ -47,7 +47,7 @@ function startWebsocket() {
     console.log('Disconnected from the WebSocket server');
     // The socket is dead. Let's make a new one (and keep trying until wd-41 backend
     // process is back up again)
-    startWebsocket()
+    setTimeout(startWebsocket, 3000)
   });
 
   // Event handler for when an error occurs with the WebSocket connection
