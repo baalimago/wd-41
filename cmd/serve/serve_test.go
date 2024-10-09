@@ -215,7 +215,6 @@ EKTcWGekdmdDPsHloRNtsiCa697B2O9IFA==
 			},
 		}
 
-		// Create an HTTP client with the custom transport
 		client := &http.Client{
 			Transport: transport,
 		}
