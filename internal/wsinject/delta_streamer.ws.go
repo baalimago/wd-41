@@ -13,7 +13,7 @@ function startWebsocket() {
   }
 
   // Establish a connection with the WebSocket server
-  const socket = new WebSocket('ws://localhost:%v%v');
+  const socket = new WebSocket('ws%v://localhost:%v%v');
 
   // Event handler for when the WebSocket connection is established
   socket.addEventListener('open', function (event) {

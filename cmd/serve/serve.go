@@ -31,8 +31,9 @@ type command struct {
 	flagset     *flag.FlagSet
 	fileserver  Fileserver
 
-	cacheControl    *string
-	certificatePath *string
+	cacheControl *string
+	tlsCertPath  *string
+	tlsKeyPath   *string
 }
 
 func Command() *command {
@@ -56,7 +57,8 @@ func (c *command) Setup() error {
 	c.masterPath = path.Clean(relPath)
 
 	if c.masterPath != "" {
-		c.fileserver = wsinject.NewFileServer(*c.port, *c.wsPath, *c.forceReload)
+		expectTLS := *c.tlsCertPath != "" && *c.tlsKeyPath != ""
+		c.fileserver = wsinject.NewFileServer(*c.port, *c.wsPath, *c.forceReload, expectTLS)
 		mirrorPath, err := c.fileserver.Setup(c.masterPath)
 		if err != nil {
 			return fmt.Errorf("failed to setup websocket injected mirror filesystem: %v", err)
@@ -85,8 +87,16 @@ func (c *command) Run(ctx context.Context) error {
 	serverErrChan := make(chan error, 1)
 	fsErrChan := make(chan error, 1)
 	go func() {
-		ancli.PrintfOK("now serving directory: '%v' on port: '%v', mirror dir is: '%v'", c.masterPath, *c.port, c.mirrorPath)
-		err := s.ListenAndServe()
+		serveTLS := *c.tlsCertPath != "" && *c.tlsKeyPath != ""
+
+		ancli.PrintfOK("now serving directory: '%v' on port: '%v', mirror dir is: '%v', tls: %v, certPath: '%v', keyPath: '%v'",
+			c.masterPath, *c.port, c.mirrorPath, serveTLS, *c.tlsCertPath, *c.tlsKeyPath)
+		var err error
+		if serveTLS {
+			err = s.ListenAndServeTLS(*c.tlsCertPath, *c.tlsKeyPath)
+		} else {
+			err = s.ListenAndServe()
+		}
 		if !errors.Is(err, http.ErrServerClosed) {
 			serverErrChan <- err
 		}
@@ -128,7 +138,8 @@ func (c *command) Flagset() *flag.FlagSet {
 	c.wsPath = fs.String("wsPort", "/delta-streamer-ws", "the path which the delta streamer websocket should be hosted on")
 	c.forceReload = fs.Bool("forceReload", false, "set to true if you wish to reload all attached browser pages on any file change")
 	c.cacheControl = fs.String("cacheControl", "no-cache", "set to configure the cache-control header")
-	c.certificatePath = fs.String("certPath", "", "set to some existing cert which should be used for TLS (https)")
+	c.tlsCertPath = fs.String("tlsCertPath", "", "set to a path to a cert, requires tlsKeyPath to be set")
+	c.tlsKeyPath = fs.String("tlsKeyPath", "", "set to a path to a key, requires tlsCertPath to be set")
 	c.flagset = fs
 	return fs
 }
