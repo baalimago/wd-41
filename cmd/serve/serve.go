@@ -74,6 +74,7 @@ func (c *command) Run(ctx context.Context) error {
 	fsh := http.FileServer(http.Dir(c.mirrorPath))
 	fsh = slogHandler(fsh)
 	fsh = cacheHandler(fsh, *c.cacheControl)
+	fsh = crossOriginIsolationHandler(fsh)
 	mux.Handle("/", fsh)
 
 	ancli.PrintfOK("setting up websocket host on path: '%v'", *c.wsPath)
