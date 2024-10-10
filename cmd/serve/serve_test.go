@@ -141,13 +141,13 @@ func TestRun(t *testing.T) {
 		t.Cleanup(func() { ws.Close() })
 	})
 
-	t.Run("it should respond with correct cache control", func(t *testing.T) {
+	t.Run("it should respond with correct headers", func(t *testing.T) {
 		cmd := setup()
 		ctx, ctxCancel := context.WithCancel(context.Background())
 		t.Cleanup(ctxCancel)
-		want := "test"
+		wantCacheControl := "test"
 		port := 13337
-		cmd.cacheControl = &want
+		cmd.cacheControl = &wantCacheControl
 		cmd.port = &port
 
 		ready := make(chan struct{})
@@ -164,8 +164,20 @@ func TestRun(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		got := resp.Header.Get("Cache-Control")
-		testboil.FailTestIfDiff(t, got, want)
+		t.Run("cache-control", func(t *testing.T) {
+			got := resp.Header.Get("Cache-Control")
+			testboil.FailTestIfDiff(t, got, wantCacheControl)
+		})
+
+		t.Run("Cross-Origin-Opener-Policy", func(t *testing.T) {
+			got := resp.Header.Get("Cross-Origin-Opener-Policy")
+			testboil.FailTestIfDiff(t, got, "same-origin")
+		})
+
+		t.Run("Cross-Origin-Embedder-Policy", func(t *testing.T) {
+			got := resp.Header.Get("Cross-Origin-Embedder-Policy")
+			testboil.FailTestIfDiff(t, got, "require-corp")
+		})
 	})
 
 	t.Run("it should serve with tls if cert and key is specified", func(t *testing.T) {
