@@ -22,6 +22,7 @@ type Fileserver struct {
 	masterPath  string
 	mirrorPath  string
 	forceReload bool
+	expectTLS   bool
 	wsPort      int
 	wsPath      string
 	watcher     *fsnotify.Watcher
@@ -37,7 +38,7 @@ var ErrNoHeaderTagFound = errors.New("no header tag found")
 const deltaStreamer = `<!-- This script has been injected by wd-41 and allows hot reloads -->
 <script type="module" src="delta-streamer.js"></script>`
 
-func NewFileServer(wsPort int, wsPath string, forceReload bool) *Fileserver {
+func NewFileServer(wsPort int, wsPath string, forceReload, expectTLS bool) *Fileserver {
 	mirrorDir, err := os.MkdirTemp("", "wd-41_*")
 	if err != nil {
 		panic(err)
@@ -47,6 +48,7 @@ func NewFileServer(wsPort int, wsPath string, forceReload bool) *Fileserver {
 		mirrorPath:            mirrorDir,
 		wsPort:                wsPort,
 		wsPath:                wsPath,
+		expectTLS:             expectTLS,
 		forceReload:           forceReload,
 		pageReloadChan:        make(chan string),
 		wsDispatcher:          sync.Map{},
@@ -97,9 +99,13 @@ func (fs *Fileserver) mirrorMaker(p string, info os.DirEntry, err error) error {
 }
 
 func (fs *Fileserver) writeDeltaStreamerScript() error {
+	tlsS := ""
+	if fs.expectTLS {
+		tlsS = "s"
+	}
 	err := os.WriteFile(
 		path.Join(fs.mirrorPath, "delta-streamer.js"),
-		[]byte(fmt.Sprintf(deltaStreamerSourceCode, fs.wsPort, fs.wsPath, fs.forceReload)),
+		[]byte(fmt.Sprintf(deltaStreamerSourceCode, tlsS, fs.wsPort, fs.wsPath, fs.forceReload)),
 		0o755)
 	if err != nil {
 		return fmt.Errorf("failed to write delta-streamer.js: %w", err)
