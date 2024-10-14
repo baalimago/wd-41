@@ -9,7 +9,7 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-// WsHandler echoes received messages back to the client.
+// WsHandler sends page reload notifications to the connected websocket
 func (fs *Fileserver) WsHandler(ws *websocket.Conn) {
 	reloadChan := make(chan string)
 	killChan := make(chan struct{})
