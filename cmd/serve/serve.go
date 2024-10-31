@@ -92,7 +92,7 @@ func (c *command) Run(ctx context.Context) error {
 
 		hostname := "localhost" // default hostname
 		protocol := "http"
-		if *c.tlsCertPath != "" && *c.tlsKeyPath != "" {
+		if serveTLS {
 			protocol = "https"
 		}
 		baseURL := fmt.Sprintf("%s://%s:%d", protocol, hostname, *c.port)
