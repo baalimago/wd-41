@@ -96,7 +96,7 @@ func (c *command) Run(ctx context.Context) error {
 			protocol = "https"
 		}
 		baseURL := fmt.Sprintf("%s://%s:%d", protocol, hostname, *c.port)
-		
+
 		ancli.PrintfOK("Server started successfully:")
 		ancli.PrintfOK("- URL: %s", baseURL)
 		ancli.PrintfOK("- Serving directory: '%v'", c.masterPath)
@@ -106,7 +106,7 @@ func (c *command) Run(ctx context.Context) error {
 		} else {
 			ancli.PrintfOK("- TLS disabled")
 		}
-		
+
 		var err error
 		if serveTLS {
 			err = s.ListenAndServeTLS(*c.tlsCertPath, *c.tlsKeyPath)
