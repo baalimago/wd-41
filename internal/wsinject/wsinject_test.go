@@ -198,7 +198,7 @@ func Test_Start(t *testing.T) {
 			case got := <-refreshChan:
 				testboil.FailTestIfDiff(t, got, "/"+filepath.Base(testFile))
 			case <-timeoutCtx.Done():
-				t.Fatal("failed to recieve refresh within time")
+				t.Fatal("failed to receive refresh within time")
 			}
 		})
 
@@ -211,7 +211,7 @@ func Test_Start(t *testing.T) {
 			case got := <-refreshChan:
 				testboil.FailTestIfDiff(t, got, "/"+filepath.Base(testFile))
 			case <-timeoutCtx.Done():
-				t.Fatal("failed to recieve refresh within time")
+				t.Fatal("failed to receive refresh within time")
 			}
 		})
 	})
