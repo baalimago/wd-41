@@ -103,6 +103,8 @@ func (c *command) Run(ctx context.Context) error {
 		ancli.PrintfOK("- Mirror directory: '%v'", c.mirrorPath)
 		if serveTLS {
 			ancli.PrintfOK("- TLS enabled (cert: '%v', key: '%v')", *c.tlsCertPath, *c.tlsKeyPath)
+		} else {
+			ancli.PrintfOK("- TLS disabled")
 		}
 		
 		var err error
