@@ -90,8 +90,23 @@ func (c *command) Run(ctx context.Context) error {
 	go func() {
 		serveTLS := *c.tlsCertPath != "" && *c.tlsKeyPath != ""
 
-		ancli.PrintfOK("now serving directory: '%v' on port: '%v', mirror dir is: '%v', tls: %v, certPath: '%v', keyPath: '%v'",
-			c.masterPath, *c.port, c.mirrorPath, serveTLS, *c.tlsCertPath, *c.tlsKeyPath)
+		hostname := "localhost" // default hostname
+		protocol := "http"
+		if serveTLS {
+			protocol = "https"
+		}
+		baseURL := fmt.Sprintf("%s://%s:%d", protocol, hostname, *c.port)
+		
+		ancli.PrintfOK("Server started successfully:")
+		ancli.PrintfOK("- URL: %s", baseURL)
+		ancli.PrintfOK("- Serving directory: '%v'", c.masterPath)
+		ancli.PrintfOK("- Mirror directory: '%v'", c.mirrorPath)
+		if serveTLS {
+			ancli.PrintfOK("- TLS enabled (cert: '%v', key: '%v')", *c.tlsCertPath, *c.tlsKeyPath)
+		} else {
+			ancli.PrintfOK("- TLS disabled")
+		}
+		
 		var err error
 		if serveTLS {
 			err = s.ListenAndServeTLS(*c.tlsCertPath, *c.tlsKeyPath)
