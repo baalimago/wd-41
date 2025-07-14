@@ -26,7 +26,7 @@ func TestWsHandler(t *testing.T) {
 
 		server := httptest.NewServer(websocket.Handler(fs.WsHandler))
 
-		port := strings.Replace(server.URL, "http://127.0.0.1:", "", -1)
+		port := strings.ReplaceAll(server.URL, "http://127.0.0.1:", "")
 		wsConfig, err := websocket.NewConfig(fmt.Sprintf("ws://localhost:%v", port), "ws://localhost/")
 		if err != nil {
 			t.Fatalf("Failed to create WebSocket config: %v", err)

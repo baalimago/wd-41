@@ -58,7 +58,7 @@ func NewFileServer(wsPort int, wsPath string, forceReload, expectTLS bool) *File
 }
 
 func (fs *Fileserver) mirrorFile(origPath string) error {
-	relativePath := strings.Replace(origPath, fs.masterPath, "", -1)
+	relativePath := strings.ReplaceAll(origPath, fs.masterPath, "")
 	fileB, err := os.ReadFile(origPath)
 	if err != nil {
 		return fmt.Errorf("failed to read file on path: '%v', err: %v", origPath, err)
@@ -155,7 +155,7 @@ func (fs *Fileserver) Start(ctx context.Context) error {
 
 func (fs *Fileserver) notifyPageUpdate(fileName string) {
 	// Make filename relative idempotently
-	fs.pageReloadChan <- strings.Replace(fileName, fs.masterPath, "", -1)
+	fs.pageReloadChan <- strings.ReplaceAll(fileName, fs.masterPath, "")
 }
 
 func (fs *Fileserver) handleFileEvent(fsEv fsnotify.Event) {

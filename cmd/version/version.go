@@ -10,8 +10,8 @@ import (
 
 // Set with buildflag if built in pipeline and not using go install
 var (
-	BUILD_VERSION  = ""
-	BUILD_CHECKSUM = ""
+	BuildVersion  = ""
+	BuildChecksum = ""
 )
 
 type command struct {
@@ -42,10 +42,10 @@ func (c *command) Run(context.Context) error {
 	version := bi.Main.Version
 	checksum := bi.Main.Sum
 	if version == "" || version == "(devel)" {
-		version = BUILD_VERSION
+		version = BuildVersion
 	}
 	if checksum == "" {
-		checksum = BUILD_CHECKSUM
+		checksum = BuildChecksum
 	}
 	fmt.Printf("version: %v, go version: %v, checksum: %v\n", version, bi.GoVersion, checksum)
 	return nil
