@@ -2,73 +2,41 @@ package main
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"os"
 
 	"github.com/baalimago/go_away_boilerplate/pkg/ancli"
 	"github.com/baalimago/go_away_boilerplate/pkg/shutdown"
 	"github.com/baalimago/wd-41/cmd"
+	"github.com/baalimago/wd-41/cmd/serve"
+	"github.com/baalimago/wd-41/cmd/version"
 )
 
-func printHelp(command cmd.Command, err error, printUsage cmd.UsagePrinter) int {
-	var notValidArg cmd.ArgNotFoundError
-	if errors.As(err, &notValidArg) {
-		ancli.PrintErr(err.Error())
-		printUsage()
-	} else if errors.Is(err, cmd.ErrNoArgs) {
-		printUsage()
-	} else if errors.Is(err, cmd.ErrHelpful) {
-		if command != nil {
-			fmt.Println(command.Help())
-		} else {
-			printUsage()
-		}
-		return 0
-	} else {
-		ancli.PrintfErr("unknown error: %v", err.Error())
-	}
-	return 1
+var commands = map[string]cmd.Command{
+	"s|serve":   serve.Command(),
+	"v|version": version.Command(),
 }
 
-func run(ctx context.Context, args []string, parseArgs cmd.ArgParser) int {
-	command, err := parseArgs(args)
-	if err != nil {
-		return printHelp(command, err, cmd.PrintUsage)
-	}
-	fs := command.Flagset()
-	var cmdArgs []string
-	if len(args) > 2 {
-		cmdArgs = args[2:]
-	}
-	err = fs.Parse(cmdArgs)
-	if err != nil {
-		ancli.PrintfErr("failed to parse flagset: %v", err.Error())
-		return 1
-	}
+const usage = `== Web Development 41 == 
 
-	err = command.Setup()
-	if err != nil {
-		ancli.PrintfErr("failed to setup command: %v", err.Error())
-		return 1
-	}
+This tool is designed to enable live reload for statically hosted web development.
+It injects a websocket script in a mirrored version of html pages
+and uses the fsnotify (cross-platform 'inotify' wrapper) package to detect filechanges.
+On filechanges, the websocket will trigger a reload of the page.
 
-	err = command.Run(ctx)
-	if err != nil {
-		ancli.PrintfErr("failed to run %v", err.Error())
-		return 1
-	}
-	return 0
-}
+The 41 (formerly "40", before I got spooked by potential lawyers) is only 
+to enable rust-repellant properties.
+
+Commands:
+%v`
 
 func main() {
 	ancli.Newline = true
-	ancli.SlogIt = true
 	ancli.SetupSlog()
+	version.Name = "wd-41"
 	ctx, cancel := context.WithCancel(context.Background())
 	exitCodeChan := make(chan int, 1)
 	go func() {
-		exitCodeChan <- run(ctx, os.Args, cmd.Parse)
+		exitCodeChan <- cmd.Run(ctx, os.Args, commands, usage)
 		cancel()
 	}()
 	shutdown.MonitorV2(ctx, cancel)
