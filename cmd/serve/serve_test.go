@@ -25,7 +25,7 @@ func Test_Setup(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to parse flagset: %v", err)
 		}
-		c.Setup()
+		c.Setup(context.Background())
 		got := c.masterPath
 		if got != want {
 			t.Fatalf("expected: %v, got: %v", want, got)
@@ -40,7 +40,7 @@ func Test_Setup(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to parse flagset: %v", err)
 		}
-		err = c.Setup()
+		err = c.Setup(context.Background())
 		if err != nil {
 			t.Fatalf("failed to setup: %v", err)
 		}
@@ -59,7 +59,7 @@ func Test_Setup(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to parse flagset: %v", err)
 		}
-		err = c.Setup()
+		err = c.Setup(context.Background())
 		if err != nil {
 			t.Fatalf("failed to setup: %v", err)
 		}
@@ -91,7 +91,7 @@ func TestRun(t *testing.T) {
 		fs := cmd.Flagset()
 		fs.Parse([]string{"--port=8081", "--wsPort=/test-ws"})
 
-		err := cmd.Setup()
+		err := cmd.Setup(context.Background())
 		if err != nil {
 			t.Fatalf("Setup failed: %v", err)
 		}

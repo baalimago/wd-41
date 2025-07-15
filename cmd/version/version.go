@@ -6,12 +6,15 @@ import (
 	"flag"
 	"fmt"
 	"runtime/debug"
+
+	"github.com/baalimago/go_away_boilerplate/pkg/ancli"
 )
 
 // Set with buildflag if built in pipeline and not using go install
 var (
 	BuildVersion  = ""
 	BuildChecksum = ""
+	Name          = ""
 )
 
 type command struct {
@@ -20,17 +23,17 @@ type command struct {
 
 // Describe the version *command
 func (c *command) Describe() string {
-	return "print the version of wd-41"
+	return fmt.Sprintf("print the version of %v", Name)
 }
 
 // Flagset for version, currently empty
 func (c *command) Flagset() *flag.FlagSet {
-	return flag.NewFlagSet("version", flag.ExitOnError)
+	return flag.NewFlagSet("version", flag.ContinueOnError)
 }
 
 // Help by printing out help
 func (c *command) Help() string {
-	return "Print the version of wd-41"
+	return fmt.Sprintf("print the version of %v", Name)
 }
 
 // Run the *command, printing the version using either the debugbuild or tagged version
@@ -47,12 +50,12 @@ func (c *command) Run(context.Context) error {
 	if checksum == "" {
 		checksum = BuildChecksum
 	}
-	fmt.Printf("version: %v, go version: %v, checksum: %v\n", version, bi.GoVersion, checksum)
+	ancli.Noticef("version: %v, go version: %v, checksum: %v\n", version, bi.GoVersion, checksum)
 	return nil
 }
 
 // Setup the *command
-func (c *command) Setup() error {
+func (c *command) Setup(_ context.Context) error {
 	c.getVersionCmd = debug.ReadBuildInfo
 	return nil
 }

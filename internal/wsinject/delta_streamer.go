@@ -16,7 +16,7 @@ func (fs *Fileserver) WsHandler(ws *websocket.Conn) {
 	name := "ws-" + fmt.Sprintf("%v", rand.Int())
 
 	go func() {
-		ancli.PrintfOK("new websocket connection: '%v'", ws.Config().Origin)
+		ancli.Okf("new websocket connection: '%v'", ws.Config().Origin)
 		for {
 			pageToReload, ok := <-reloadChan
 			if !ok {
@@ -25,24 +25,24 @@ func (fs *Fileserver) WsHandler(ws *websocket.Conn) {
 			err := websocket.Message.Send(ws, pageToReload)
 			if err != nil {
 				// Exit on error
-				ancli.PrintfErr("ws: failed to send message via ws: %v", err)
+				ancli.Errf("ws: failed to send message via ws: %v", err)
 				killChan <- struct{}{}
 			}
 		}
 	}()
 
-	ancli.PrintOK("Listening to file changes on pageReloadChan")
+	ancli.Okf("Listening to file changes on pageReloadChan")
 	fs.registerWs(name, reloadChan)
 	<-killChan
-	ancli.PrintOK("websocket disconnected")
+	ancli.Okf("websocket disconnected")
 	fs.deregisterWs(name)
 	err := ws.WriteClose(1005)
 	if err != nil {
-		ancli.PrintfErr("ws-listener: '%v' got err when writeclosing: %v", name, err)
+		ancli.Errf("ws-listener: '%v' got err when writeclosing: %v", name, err)
 	}
 	err = ws.Close()
 	if err != nil {
-		ancli.PrintfErr("ws-listener: '%v' got err when closing: %v", name, err)
+		ancli.Errf("ws-listener: '%v' got err when closing: %v", name, err)
 	}
 }
 
