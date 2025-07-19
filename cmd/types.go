@@ -8,7 +8,7 @@ import (
 )
 
 type Command interface {
-	Setup() error
+	Setup(context.Context) error
 
 	// Run and block until context cancel
 	Run(context.Context) error
@@ -24,7 +24,7 @@ type Command interface {
 }
 
 type (
-	ArgParser    func([]string) (Command, error)
+	ArgParser    func([]string, map[string]Command) (Command, func(string, map[string]Command) string, error)
 	UsagePrinter func()
 )
 
@@ -34,7 +34,4 @@ func (e ArgNotFoundError) Error() string {
 	return fmt.Sprintf("'%v' is not a valid argument\n", string(e))
 }
 
-var (
-	ErrHelpful = errors.New("user needs help")
-	ErrNoArgs  = errors.New("no arguments found")
-)
+var ErrNoArgs = errors.New("no arguments found")

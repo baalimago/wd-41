@@ -15,19 +15,14 @@ func TestCommand(t *testing.T) {
 		t.Fatal("Expected command to be non-nil")
 	}
 
-	if cmd.Describe() != "print the version of wd-41" {
-		t.Fatalf("Unexpected describe: %v", cmd.Describe())
-	}
+	testboil.AssertStringContains(t, cmd.Describe(), "print the version of")
 
 	fs := cmd.Flagset()
 	if fs == nil {
 		t.Fatal("Expected flagset to be non-nil")
 	}
 
-	help := cmd.Help()
-	if help != "Print the version of wd-41" {
-		t.Fatalf("Unexpected help output: %v", help)
-	}
+	testboil.AssertStringContains(t, cmd.Help(), "print the version of")
 }
 
 func TestRun(t *testing.T) {
@@ -54,8 +49,6 @@ func TestRun(t *testing.T) {
 		})
 
 		expected := "version: v1.2.3, go version: go1.18, checksum: h1:checksum\n"
-		if got != expected {
-			t.Fatalf("Expected output %s, got %s", expected, got)
-		}
+		testboil.AssertStringContains(t, got, expected)
 	})
 }

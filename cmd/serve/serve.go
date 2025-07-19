@@ -43,7 +43,7 @@ func Command() *command {
 	}
 }
 
-func (c *command) Setup() error {
+func (c *command) Setup(_ context.Context) error {
 	relPath := ""
 	if len(c.flagset.Args()) == 0 {
 		wd, err := os.Getwd()
@@ -72,12 +72,12 @@ func (c *command) Setup() error {
 func (c *command) Run(ctx context.Context) error {
 	mux := http.NewServeMux()
 	fsh := http.FileServer(http.Dir(c.mirrorPath))
-	fsh = slogHandler(fsh)
-	fsh = cacheHandler(fsh, *c.cacheControl)
-	fsh = crossOriginIsolationHandler(fsh)
+	fsh = SlogHandler(fsh)
+	fsh = CacheHandler(fsh, *c.cacheControl)
+	fsh = CrossOriginIsolationHandler(fsh)
 	mux.Handle("/", fsh)
 
-	ancli.PrintfOK("setting up websocket host on path: '%v'", *c.wsPath)
+	ancli.Okf("setting up websocket host on path: '%v'", *c.wsPath)
 	mux.Handle(*c.wsPath, websocket.Handler(c.fileserver.WsHandler))
 
 	s := http.Server{
@@ -97,14 +97,14 @@ func (c *command) Run(ctx context.Context) error {
 		}
 		baseURL := fmt.Sprintf("%s://%s:%d", protocol, hostname, *c.port)
 
-		ancli.PrintfOK("Server started successfully:")
-		ancli.PrintfOK("- URL: %s", baseURL)
-		ancli.PrintfOK("- Serving directory: '%v'", c.masterPath)
-		ancli.PrintfOK("- Mirror directory: '%v'", c.mirrorPath)
+		ancli.Okf("Server started successfully:")
+		ancli.Okf("- URL: %s", baseURL)
+		ancli.Okf("- Serving directory: '%v'", c.masterPath)
+		ancli.Okf("- Mirror directory: '%v'", c.mirrorPath)
 		if serveTLS {
-			ancli.PrintfOK("- TLS enabled (cert: '%v', key: '%v')", *c.tlsCertPath, *c.tlsKeyPath)
+			ancli.Okf("- TLS enabled (cert: '%v', key: '%v')", *c.tlsCertPath, *c.tlsKeyPath)
 		} else {
-			ancli.PrintfOK("- TLS disabled")
+			ancli.Okf("- TLS disabled")
 		}
 
 		var err error
@@ -118,7 +118,7 @@ func (c *command) Run(ctx context.Context) error {
 		}
 	}()
 	go func() {
-		ancli.PrintOK("starting fsnotify file detector")
+		ancli.Okf("starting fsnotify file detector")
 		err := c.fileserver.Start(ctx)
 		if err != nil {
 			fsErrChan <- err
@@ -136,7 +136,7 @@ func (c *command) Run(ctx context.Context) error {
 	}
 	ancli.PrintNotice("initiating webserver graceful shutdown")
 	s.Shutdown(ctx)
-	ancli.PrintOK("shutdown complete")
+	ancli.Okf("shutdown complete")
 	return retErr
 }
 
@@ -149,7 +149,7 @@ func (c *command) Describe() string {
 }
 
 func (c *command) Flagset() *flag.FlagSet {
-	fs := flag.NewFlagSet("server", flag.ExitOnError)
+	fs := flag.NewFlagSet("server", flag.ContinueOnError)
 	c.port = fs.Int("port", 8080, "port to serve http server on")
 	c.wsPath = fs.String("wsPort", "/delta-streamer-ws", "the path which the delta streamer websocket should be hosted on")
 	c.forceReload = fs.Bool("forceReload", false, "set to true if you wish to reload all attached browser pages on any file change")
