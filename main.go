@@ -5,10 +5,10 @@ import (
 	"os"
 
 	"github.com/baalimago/go_away_boilerplate/pkg/ancli"
+	"github.com/baalimago/go_away_boilerplate/pkg/cmd"
+	"github.com/baalimago/go_away_boilerplate/pkg/cmd/version"
 	"github.com/baalimago/go_away_boilerplate/pkg/shutdown"
-	"github.com/baalimago/wd-41/cmd"
 	"github.com/baalimago/wd-41/cmd/serve"
-	"github.com/baalimago/wd-41/cmd/version"
 )
 
 var commands = map[string]cmd.Command{
